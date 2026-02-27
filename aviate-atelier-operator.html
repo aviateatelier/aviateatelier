@@ -225,7 +225,7 @@ body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--t
 @keyframes successPop { from{opacity:0;transform:scale(0.5)} to{opacity:1;transform:scale(1)} }
 
 /* DASHBOARD */
-.dashboard-wrap { display: grid !important; grid-template-columns: 220px 1fr !important; min-height: calc(100vh - 60px); width: 100%; }
+.dashboard-wrap { display: grid !important; grid-template-columns: 220px 1fr !important; min-height: calc(100vh - 60px); width: 100%; overflow: hidden; }
 .sidebar { background: var(--bg2); border-right: 1px solid var(--border); padding: 20px 0; position: sticky; top: 60px; height: calc(100vh - 60px); overflow-y: auto; }
 .sidebar-company { padding: 0 18px 16px; border-bottom: 1px solid var(--border); margin-bottom: 12px; }
 .sidebar-company-name { font-size: 14px; font-weight: 700; color: var(--text); }
@@ -241,6 +241,7 @@ body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--t
 .sidebar-badge { margin-left: auto; background: var(--red); color: white; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 8px; }
 .sidebar-badge.gold { background: rgba(229,168,60,0.2); color: var(--gold2); }
 .main-content { padding: 28px; overflow-y: auto; min-width: 0; flex: 1; }
+#dtab-requests { display: block; }
 .page-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
 .page-sub { font-size: 13px; color: var(--text2); margin-bottom: 24px; }
 .stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 24px; }
@@ -1809,6 +1810,7 @@ async function executeAgreement() {
     }
 
     document.getElementById('success-company').textContent = company;
+    _opRecord = savedOperator;
     goStep(5);
     // Auto-login after registration
     setTimeout(function() {
@@ -1832,7 +1834,7 @@ async function executeAgreement() {
 }
 
 function goToDashboard() {
-  if (currentOperator) loadDashboard(currentOperator);
+  if (_opRecord) { loadDashboard(); } else if (currentOperator) { _opRecord = currentOperator; loadDashboard(); }
 }
 
 // ══ OPERATOR LOGIN ══
@@ -2467,6 +2469,7 @@ async function submitQuote() {
 
 // ══ DASHBOARD TABS ══
 function switchDashTab(tab) {
+  if (!tab) tab = 'requests';
   ['requests','bookings','fleet','status','activity','pilots'].forEach(function(t) {
     var el = document.getElementById('dtab-' + t);
     if (el) el.style.display = t === tab ? 'block' : 'none';
