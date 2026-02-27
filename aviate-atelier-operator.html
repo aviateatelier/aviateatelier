@@ -411,7 +411,7 @@ body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--t
       <div class="login-sub">Access your Aviate Atelier operator dashboard.</div>
       <div class="field-group">
         <div class="field-label">Company Email</div>
-        <input class="field-input" type="email" id="op-login-email" placeholder="ops@yourcompany.com">
+        <input class="field-input" type="email" id="op-login-email" placeholder="">
       </div>
       <div class="field-group">
         <div class="field-label">Password</div>
@@ -487,7 +487,7 @@ body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--t
     </div>
     <div class="field-group">
       <div class="field-label">Company Email <span class="field-required">Required</span></div>
-      <input class="field-input" type="email" placeholder="ops@yourcompany.com" id="f-email">
+      <input class="field-input" type="email" placeholder="" id="f-email">
     </div>
     <div class="field-group">
       <div class="field-label">Password <span class="field-required">Required</span></div>
@@ -782,11 +782,7 @@ body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--t
               Pilot Roster
             </div>
         <div class="sidebar-group-label" id="sidebar-account-group">Account</div>
-        <div class="sidebar-item" id="sidebar-osa-item" onclick="switchDashTab('osa')" style="display:none">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 2h8a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V4a2 2 0 012-2z"/><line x1="5" y1="6" x2="11" y2="6"/><line x1="5" y1="9" x2="8" y2="9"/></svg>
-          My Agreement
-        </div>
-      </div>
+        
     </div>
     <div class="main-content">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
@@ -1897,8 +1893,8 @@ async function clientLogin() {
 // ═══════════════════════════════════════════════════════
 function loadDemoMode() {
   var demoOp = {
-    id: 'demo_001', company_name: 'Apex Air Charter LLC',
-    owner_name: '', email: 'ops@yourcompany.com',
+    id: 'demo_001', company_name: '',
+    owner_name: '', email: '',
     role: 'owner', argus_rating: 'ARGUS Platinum', status: 'active'
   };
   window._demoMode = true;
@@ -1975,7 +1971,7 @@ function loadDemoMode() {
     var setEl = function(id, v) { var e = document.getElementById(id); if (e) e.textContent = v; };
     setEl('d-stat-req', demoReqs.length);
     setEl('d-stat-quotes', '7');
-    setEl('d-stat-revenue', '$142,800');
+    setEl('d-stat-revenue', '$0');
 
     reqList.innerHTML = demoReqs.map(function(r) {
       var ds = new Date(r.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
@@ -4156,19 +4152,16 @@ async function submitPilotRequest(pilotId, offerData) {
 }
 
 // ══ PILOT ROSTER ══
-var PILOT_DB = [
-  { id:'p1', name:'James Whitfield',  initials:'JW', bg:'rgba(91,163,255,0.12)',   fg:'#5BA3FF',  location:'Miami, FL',    auth:'FAA ATP',   pos:'PIC', avail:'available', types:['Gulfstream G550','G650','Challenger 350'], hours:14200, picHrs:8400, rate:850, lastFlown:'G550 - 3 days ago' },
-  { id:'p2', name:'Sophia Mueller',   initials:'SM', bg:'rgba(167,139,250,0.12)',  fg:'#A78BFA',  location:'Frankfurt, DE', auth:'EASA ATPL', pos:'PIC', avail:'available', types:['Falcon 7X','Falcon 2000LXS','Phenom 300E'],  hours:9800,  picHrs:5200, rate:780, lastFlown:'Falcon 7X - 1 week ago' },
-  { id:'p3', name:'Rajesh Kumar',     initials:'RK', bg:'rgba(229,168,60,0.12)',   fg:'#E5A83C',  location:'Dubai, UAE',    auth:'DGCA/FAA',  pos:'SIC', avail:'open',      types:['Citation CJ4','King Air 350'],               hours:4400,  picHrs:1200, rate:420, lastFlown:'CJ4 - 2 weeks ago' },
-  { id:'p4', name:'Amara Okonkwo',    initials:'AO', bg:'rgba(45,212,191,0.12)',   fg:'#2DD4BF',  location:'Sydney, AU',    auth:'CASA ATPL', pos:'PIC', avail:'available', types:['Challenger 350','Global 6000'],              hours:11300, picHrs:7100, rate:920, lastFlown:'Global 6000 - 5 days ago' },
-  { id:'p5', name:'Marc Lefebvre',    initials:'ML', bg:'rgba(79,208,128,0.12)',   fg:'#4FD080',  location:'Montreal, CA',  auth:'TC ATP',    pos:'PIC', avail:'available', types:['Phenom 300E','Citation XLS+','King Air 350'],hours:6700,  picHrs:3900, rate:610, lastFlown:'Phenom 300E - Yesterday' },
-  { id:'p6', name:'Priya Santos',     initials:'PS', bg:'rgba(255,159,67,0.12)',   fg:'#FF9F43',  location:'Manila, PH',    auth:'CAAP CPL',  pos:'SIC', avail:'open',      types:['King Air 200','ATR 72'],                     hours:2800,  picHrs:400,  rate:280, lastFlown:'ATR 72 - 3 days ago' },
-];
+var PILOT_DB = [];
 
 function renderPilotRoster(pilots) {
   var list = document.getElementById('pilot-roster-list');
   if (!list) return;
   if (!pilots) pilots = PILOT_DB;
+  if (!pilots || pilots.length === 0) {
+    list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);"><div style="font-size:32px;margin-bottom:12px;">👨‍✈️</div><div style="font-size:14px;font-weight:600;margin-bottom:6px;">No pilots yet</div><div style="font-size:12px;">Pilots who register on the platform will appear here.</div></div>';
+    return;
+  }
   var avColor = { available: 'var(--green2)', open: 'var(--gold2)', booked: 'var(--text3)' };
   var avLabel = { available: 'Available Now', open: 'Open to Offers', booked: 'Unavailable' };
   var html = '';
@@ -4235,6 +4228,52 @@ function updatePilotOffer() {
   document.getElementById('prm-total-strip').children[0].textContent = lbl;
 }
 
+
+
+// ── STRIPE CONNECT ──
+async function connectStripe() {
+  if (!_opRecord) { showToast('error','✕','Not logged in','Please log in first.'); return; }
+  var btn = document.getElementById('stripe-connect-btn');
+  if (btn) { btn.textContent = 'Connecting...'; btn.disabled = true; }
+  try {
+    var res = await fetch('https://hkjldgjvxgrutnqzwfql.supabase.co/functions/v1/create-connect-account', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhramxkZ2p2eGdydXRucXp3ZnFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwNDMwOTYsImV4cCI6MjA4NzYxOTA5Nn0.aNICtFHRMeP5Xu9ssgLlziC6cbR6-WXcTCbM1UY1q3g' },
+      body: JSON.stringify({
+        email: _opRecord.email,
+        company_name: _opRecord.company_name,
+        operator_id: _opRecord.id
+      })
+    });
+    var data = await res.json();
+    if (data.error) throw new Error(data.error);
+    // Save stripe account ID to operators table
+    await _sb.from('operators').update({ stripe_account_id: data.stripe_account_id }).eq('id', _opRecord.id);
+    _opRecord.stripe_account_id = data.stripe_account_id;
+    // Redirect to Stripe onboarding
+    window.location.href = data.onboarding_url;
+  } catch(e) {
+    showToast('error','✕','Stripe Error', e.message);
+    if (btn) { btn.textContent = 'Connect Bank Account'; btn.disabled = false; }
+  }
+}
+
+// Check if returning from Stripe onboarding
+(function() {
+  if (window.location.search.includes('stripe=connected')) {
+    showToast('success','✓','Bank Account Connected','You can now receive payouts directly to your account.');
+    history.replaceState(null,'',window.location.pathname);
+    // Update UI
+    var connectBtn = document.getElementById('stripe-connect-btn');
+    if (connectBtn) {
+      connectBtn.textContent = '✓ Bank Account Connected';
+      connectBtn.style.background = 'rgba(79,208,128,0.1)';
+      connectBtn.style.color = '#4FD080';
+      connectBtn.style.borderColor = '#4FD080';
+      connectBtn.disabled = true;
+    }
+  }
+})();
 
 </script>
 </body>

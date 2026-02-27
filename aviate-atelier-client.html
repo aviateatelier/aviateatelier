@@ -311,6 +311,7 @@ body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--t
 
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://js.stripe.com/v3/"></script>
 </head>
 <body>
 <div class="top-nav">
@@ -2088,6 +2089,129 @@ document.addEventListener('DOMContentLoaded', function() {
   } catch(e) {
     console.warn('Init error:', e);
   }
-});</script>
+});
+// ── STRIPE PAYMENT ──
+const _stripe = Stripe('pk_test_51T5XJA2Zgo5uvyqhxzwJ3DH9Koo48plM1gbyuYyFo2OM34wIIxUdRlnryAv2h7aqfgSpwOGWm8TvQVscPxBtsJbV00foA4FnTm');
+var _stripeElements = null;
+var _currentQuote = null;
+
+async function initiatePayment(quote) {
+  _currentQuote = quote;
+  
+  // Show payment modal
+  var modal = document.getElementById('payment-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'payment-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+    modal.innerHTML = `
+      <div style="background:#12151F;border:1px solid #262B3A;border-radius:24px;padding:32px;width:100%;max-width:440px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+          <div>
+            <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;">Confirm & Pay</div>
+            <div style="font-size:12px;color:#8892A4;margin-top:4px;">Secure payment via Stripe</div>
+          </div>
+          <button onclick="closePaymentModal()" style="background:none;border:none;color:#8892A4;font-size:24px;cursor:pointer;">✕</button>
+        </div>
+        <div style="background:#07090F;border:1px solid #262B3A;border-radius:14px;padding:16px;margin-bottom:20px;">
+          <div style="font-size:12px;color:#8892A4;margin-bottom:8px;">BOOKING SUMMARY</div>
+          <div id="pay-route" style="font-size:18px;font-weight:700;margin-bottom:4px;">—</div>
+          <div id="pay-aircraft" style="font-size:12px;color:#8892A4;margin-bottom:12px;">—</div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;">
+            <span style="color:#8892A4;">Charter price</span>
+            <span id="pay-gross" style="font-weight:600;">—</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-top:6px;padding-top:6px;border-top:1px solid #262B3A;">
+            <span style="font-weight:700;">Total charged today</span>
+            <span id="pay-total" style="font-weight:800;color:#E5A83C;font-size:16px;">—</span>
+          </div>
+        </div>
+        <div id="stripe-card-element" style="background:#07090F;border:1px solid #262B3A;border-radius:12px;padding:14px;margin-bottom:16px;"></div>
+        <div id="pay-error" style="color:#FF6B6B;font-size:12px;margin-bottom:12px;display:none;"></div>
+        <button id="pay-btn" onclick="processPayment()" style="width:100%;background:#E5A83C;color:#07090F;border:none;border-radius:14px;padding:16px;font-size:15px;font-weight:800;cursor:pointer;">
+          Pay Now
+        </button>
+        <div style="text-align:center;margin-top:12px;font-size:11px;color:#3E4558;">
+          🔒 Secured by Stripe · Your card details are never stored
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+
+  // Populate summary
+  document.getElementById('pay-route').textContent = (quote.from_airport || '—') + ' → ' + (quote.to_airport || '—');
+  document.getElementById('pay-aircraft').textContent = quote.aircraft_type || 'Private Charter';
+  document.getElementById('pay-gross').textContent = '$' + (quote.price || 0).toLocaleString();
+  document.getElementById('pay-total').textContent = '$' + (quote.price || 0).toLocaleString();
+  modal.style.display = 'flex';
+
+  // Mount Stripe Elements
+  var elements = _stripe.elements({ appearance: { theme: 'night', variables: { colorPrimary: '#E5A83C' } } });
+  var cardElement = elements.create('card', { style: { base: { color: '#EDF2FF', fontSize: '15px' } } });
+  cardElement.mount('#stripe-card-element');
+  _stripeElements = { elements, cardElement };
+}
+
+function closePaymentModal() {
+  var modal = document.getElementById('payment-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+async function processPayment() {
+  var btn = document.getElementById('pay-btn');
+  var errEl = document.getElementById('pay-error');
+  btn.textContent = 'Processing...'; btn.disabled = true;
+  errEl.style.display = 'none';
+
+  try {
+    // 1. Create PaymentIntent via Supabase Edge Function
+    var res = await fetch('https://hkjldgjvxgrutnqzwfql.supabase.co/functions/v1/create-payment-intent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': 'https://hkjldgjvxgrutnqzwfql.supabase.co' },
+      body: JSON.stringify({
+        amount: _currentQuote.price,
+        booking_id: _currentQuote.id || 'pending',
+        description: 'Charter: ' + (_currentQuote.from_airport||'') + ' → ' + (_currentQuote.to_airport||'')
+      })
+    });
+    var data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    // 2. Confirm payment with Stripe
+    var result = await _stripe.confirmCardPayment(data.client_secret, {
+      payment_method: { card: _stripeElements.cardElement }
+    });
+
+    if (result.error) throw new Error(result.error.message);
+
+    // 3. Payment succeeded — save booking to Supabase
+    if (_clientRecord) {
+      await _sb.from('bookings').insert({
+        client_id: _clientRecord.id,
+        quote_id: _currentQuote.id || null,
+        total_paid: _currentQuote.price,
+        platform_commission: Math.round(_currentQuote.price * 0.05 * 100) / 100,
+        operator_settlement: Math.round(_currentQuote.price * 0.95 * 100) / 100,
+        stripe_payment_intent: result.paymentIntent.id,
+        status: 'confirmed'
+      });
+    }
+
+    closePaymentModal();
+    if (typeof showToast === 'function') {
+      showToast('success', '✓', 'Booking Confirmed!', 'Your charter is booked. Operator will be in touch shortly.');
+    } else {
+      alert('✅ Booking confirmed! Your charter is locked in.');
+    }
+
+  } catch(e) {
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+    btn.textContent = 'Pay Now'; btn.disabled = false;
+  }
+}
+
+</script>
 </body>
 </html>
