@@ -678,7 +678,7 @@ body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--t
         </div>
         <div class="osa-section">
           <div class="osa-section-title">6. Payments & Settlement</div>
-          <p><strong>6.1</strong> Aviate Atelier collects full payment from clients at time of booking. Settlement to Operator occurs within five (5) business days of flight completion, net of applicable Platform Service Fees.</p>
+          <p><strong>6.1</strong> Aviate Atelier collects full payment from clients at time of booking. Settlement to Operator occurs within two (2) business days of flight completion, net of applicable Platform Service Fees.</p>
           <p><strong>6.2</strong> Monthly settlement statements are provided to the Operator Account Owner.</p>
         </div>
         <div class="osa-section">
@@ -782,7 +782,7 @@ body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--t
               Pilot Roster
             </div>
         <div class="sidebar-group-label" id="sidebar-account-group">Account</div>
-        <div class="sidebar-item" id="sidebar-osa-item" onclick="switchDashTab('osa')">
+        <div class="sidebar-item" id="sidebar-osa-item" onclick="switchDashTab('osa')" style="display:none">
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 2h8a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V4a2 2 0 012-2z"/><line x1="5" y1="6" x2="11" y2="6"/><line x1="5" y1="9" x2="8" y2="9"/></svg>
           My Agreement
         </div>
@@ -920,9 +920,9 @@ body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--t
               <div style="font-size:10px;color:var(--text3);margin-top:2px">Decreases at volume</div>
             </div>
             <div style="background:var(--card);border-radius:10px;padding:14px;text-align:center">
-              <div style="font-size:28px;font-weight:800;color:var(--text)">5 days</div>
+              <div style="font-size:28px;font-weight:800;color:var(--text)">2 days</div>
               <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:4px">Settlement</div>
-              <div style="font-size:10px;color:var(--text3);margin-top:2px">After completion</div>
+              <div style="font-size:10px;color:var(--text3);margin-top:2px">At payment</div>
             </div>
             <div style="background:var(--card);border-radius:10px;padding:14px;text-align:center">
               <div style="font-size:28px;font-weight:800;color:var(--text)">30</div>
@@ -948,7 +948,7 @@ body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--t
             <div style="margin-bottom:16px">Aviate Atelier provides a digital marketplace connecting FAA Part 135 certified charter operators with qualified charter clients. The Platform facilitates quote requests, quote delivery, passenger manifest collection, and booking management. The Operator retains full operational control and PIC authority over all flights.</div>
 
             <div style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--gold2);margin-bottom:6px">2. Commission & Settlement</div>
-            <div style="margin-bottom:16px">The Platform charges a <strong>marketplace service fee</strong> on the total quoted price for each completed booking, deducted at settlement. The fee starts at <strong>5%</strong> and decreases for higher-value bookings; the exact settlement amount is always displayed transparently in the operator dashboard before any quote is submitted. Settlement is processed within five (5) business days of confirmed flight completion. The Platform reserves the right to revise commission rates as the platform matures and service quality improves, with a minimum <strong>thirty (30) calendar days' written notice</strong> via email to the registered account address. Rate changes will not apply retroactively to quotes already submitted or bookings already confirmed at the time of notice. Operators may terminate this agreement without penalty within the 30-day notice window if they do not accept revised rates.</div>
+            <div style="margin-bottom:16px">The Platform charges a <strong>marketplace service fee</strong> on the total quoted price for each completed booking, deducted at settlement. The fee starts at <strong>5%</strong> and decreases for higher-value bookings; the exact settlement amount is always displayed transparently in the operator dashboard before any quote is submitted. The Platform collects full payment from the client at the time of booking. Operator settlement is transferred within two (2) business days of confirmed flight completion. The Platform reserves the right to revise commission rates as the platform matures and service quality improves, with a minimum <strong>thirty (30) calendar days' written notice</strong> via email to the registered account address. Rate changes will not apply retroactively to quotes already submitted or bookings already confirmed at the time of notice. Operators may terminate this agreement without penalty within the 30-day notice window if they do not accept revised rates.</div>
 
             <div style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--gold2);margin-bottom:6px">3. Operator Obligations</div>
             <div style="margin-bottom:16px">The Operator agrees to: (a) maintain valid FAA Part 135 certification at all times; (b) carry liability insurance of at minimum $100,000,000 per occurrence; (c) respond to booking requests within 24 hours; (d) ensure all quoted aircraft are airworthy and available on the confirmed departure date; (e) maintain accurate passenger manifests per FAA and TSA requirements; (f) not directly solicit clients introduced through the Platform outside of the Platform for a period of 24 months.</div>
@@ -1099,7 +1099,7 @@ body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--t
       <div class="sp-row"><div class="sp-label">Quote to client</div><div class="sp-value" id="sp-quote">$14,800</div></div>
       <div class="sp-row"><div class="sp-label">Platform fee</div><div class="sp-value" id="sp-fee" style="color:var(--text3)">—</div></div>
       <div class="sp-row total"><div class="sp-label">Your settlement</div><div class="sp-value" id="sp-net">$14,800</div></div>
-      <div class="sp-note">Settlement within 5 business days of flight completion · 2% platform fee</div>
+      <div class="sp-note">Settlement within 2 business days of flight completion · 2% platform fee</div>
     </div>
     <div class="modal-btns">
       <button class="modal-cancel" onclick="closeModal()">Cancel</button>
@@ -1898,7 +1898,7 @@ async function clientLogin() {
 function loadDemoMode() {
   var demoOp = {
     id: 'demo_001', company_name: 'Apex Air Charter LLC',
-    owner_name: 'Marcus Reid', email: 'marcus@apexair.com',
+    owner_name: '', email: 'marcus@apexair.com',
     role: 'owner', argus_rating: 'ARGUS Platinum', status: 'active'
   };
   window._demoMode = true;
@@ -1922,10 +1922,10 @@ function loadDemoMode() {
   ];
 
   ACTIVITY_LOG = [
-    { id:'l1', ts:new Date(Date.now()-480000).toISOString(),  category:'quote',   description:'Quote submitted \u2014 N481SP \u00b7 MIA \u2192 TEB \u00b7 $14,200', user:'Marcus Reid',  role:'owner' },
+    { id:'l1', ts:new Date(Date.now()-480000).toISOString(),  category:'quote',   description:'Quote submitted \u2014 N481SP \u00b7 MIA \u2192 TEB \u00b7 $14,200', user:'',  role:'owner' },
     { id:'l2', ts:new Date(Date.now()-1320000).toISOString(), category:'fleet',   description:'N720JB status: Scheduled \u2192 In Flight',                           user:'Sarah Chen',   role:'chief_pilot' },
     { id:'l3', ts:new Date(Date.now()-2700000).toISOString(), category:'booking', description:'New request \u00b7 OPF \u2192 TEB \u00b7 4 pax',                      user:'System',       role:'unknown' },
-    { id:'l4', ts:new Date(Date.now()-5400000).toISOString(), category:'team',    description:'Suspended D. Elliot \u2014 access revoked temporarily',               user:'Marcus Reid',  role:'owner' },
+    { id:'l4', ts:new Date(Date.now()-5400000).toISOString(), category:'team',    description:'Suspended D. Elliot \u2014 access revoked temporarily',               user:'',  role:'owner' },
     { id:'l5', ts:new Date(Date.now()-8400000).toISOString(), category:'fleet',   description:'N38VT status: Available \u2192 Maintenance',                          user:'James Okafor', role:'director_ops' },
     { id:'l6', ts:new Date(Date.now()-12000000).toISOString(),category:'quote',   description:'Quote submitted \u2014 N55KR \u00b7 VNY \u2192 KSUN \u00b7 $28,500', user:'Priya Nair',   role:'dispatcher' }
   ];

@@ -375,7 +375,7 @@ body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--t
         </div>
         <div class="field-group" style="margin-bottom:0">
           <div class="field-label">Last Name <span class="field-required">Required</span></div>
-          <input class="field-input" id="cl-last" placeholder="Morrison">
+          <input class="field-input" id="cl-last" placeholder="Last Name">
         </div>
       </div>
       <div class="field-group">
@@ -384,11 +384,11 @@ body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--t
       </div>
       <div class="field-group">
         <div class="field-label">Phone Number</div>
-        <input class="field-input" type="tel" id="cl-phone" placeholder="+1 (305) 000-0000">
+        <input class="field-input" type="tel" id="cl-phone" placeholder="+1 (000) 000-0000">
       </div>
       <div class="field-group">
         <div class="field-label">Company (Optional)</div>
-        <input class="field-input" id="cl-company" placeholder="Morrison Capital">
+        <input class="field-input" id="cl-company" placeholder="Company Name (Optional)">
       </div>
       <div class="field-group">
         <div class="field-label">Password <span class="field-required">Required</span></div>
@@ -1921,7 +1921,7 @@ function buildPaxForm(idx) {
   const phoneHtml = isLead ? (
     '<div style="margin-top:12px">' +
     '<div class="field-label">Mobile Phone (for flight updates)</div>' +
-    '<input class="field-input" type="tel" id="pax-' + idx + '-phone" placeholder="+1 (305) 000-0000"></div>'
+    '<input class="field-input" type="tel" id="pax-' + idx + '-phone" placeholder="+1 (000) 000-0000"></div>'
   ) : '';
 
   return '<div style="background:var(--bg3);border:1px solid var(--border2);border-radius:14px;padding:18px;margin-bottom:4px">' +
