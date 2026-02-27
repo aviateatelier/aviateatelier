@@ -225,7 +225,7 @@ body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--t
 @keyframes successPop { from{opacity:0;transform:scale(0.5)} to{opacity:1;transform:scale(1)} }
 
 /* DASHBOARD */
-.dashboard-wrap { display: grid; grid-template-columns: 210px 1fr; min-height: calc(100vh - 60px); }
+.dashboard-wrap { display: grid !important; grid-template-columns: 220px 1fr !important; min-height: calc(100vh - 60px); width: 100%; }
 .sidebar { background: var(--bg2); border-right: 1px solid var(--border); padding: 20px 0; position: sticky; top: 60px; height: calc(100vh - 60px); overflow-y: auto; }
 .sidebar-company { padding: 0 18px 16px; border-bottom: 1px solid var(--border); margin-bottom: 12px; }
 .sidebar-company-name { font-size: 14px; font-weight: 700; color: var(--text); }
@@ -240,7 +240,7 @@ body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--t
 .sidebar-item.active svg { opacity: 1; }
 .sidebar-badge { margin-left: auto; background: var(--red); color: white; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 8px; }
 .sidebar-badge.gold { background: rgba(229,168,60,0.2); color: var(--gold2); }
-.main-content { padding: 28px; overflow-y: auto; }
+.main-content { padding: 28px; overflow-y: auto; min-width: 0; flex: 1; }
 .page-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
 .page-sub { font-size: 13px; color: var(--text2); margin-bottom: 24px; }
 .stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 24px; }
@@ -1756,8 +1756,9 @@ async function executeAgreement() {
 
   try {
     // 1. Create auth account
-    const authData = await auth.signUp(email, password, { company_name: company });
-    auth.save(authData);
+    const { data: authData, error: authErr } = await _sb.auth.signUp({ email, password, options: { data: { company_name: company } } });
+    if (authErr) throw new Error(authErr.message);
+    const userId = authData.user.id;
 
     // 2. Save operator record to database
     const operatorData = {
@@ -1782,9 +1783,12 @@ async function executeAgreement() {
       osa_signed_at: new Date().toISOString()
     };
 
-    const [savedOperator] = await sb.insert('operators', operatorData);
+    operatorData.user_id = userId;
+    const { data: savedOperators, error: opErr } = await _sb.from('operators').insert([operatorData]).select();
+    if (opErr) throw new Error(opErr.message);
+    const savedOperator = savedOperators[0];
+    _opRecord = savedOperator;
     currentOperator = savedOperator;
-    localStorage.setItem('aa_operator', JSON.stringify(savedOperator));
 
     // 3. Save fleet
     const fleetCards = document.querySelectorAll('#fleet-list > div');
@@ -1792,7 +1796,7 @@ async function executeAgreement() {
       const tail = card.querySelector('.fleet-tail')?.value?.trim();
       const type = card.querySelector('.fleet-type')?.value;
       if (tail && type) {
-        await sb.insert('fleet', {
+        await _sb.from('fleet').insert({
           operator_id: savedOperator.id,
           tail_number: tail,
           aircraft_type: type,
@@ -1806,6 +1810,17 @@ async function executeAgreement() {
 
     document.getElementById('success-company').textContent = company;
     goStep(5);
+    // Auto-login after registration
+    setTimeout(function() {
+      if (_opRecord) {
+        var navStatus = document.getElementById('nav-status');
+        if (navStatus) navStatus.style.display = 'flex';
+        var navLogout = document.getElementById('nav-logout-btn');
+        if (navLogout) navLogout.style.display = 'block';
+        var navUser = document.getElementById('nav-user-name');
+        if (navUser) navUser.textContent = _opRecord.company_name || email;
+      }
+    }, 500);
     showToast('success', '✓', 'Account created', 'Your operator profile is saved to the database.');
 
   } catch (err) {
@@ -1831,6 +1846,13 @@ async function operatorLogin() {
   if (!op) { alert('No operator account found for this email. Please register first.'); return; }
   _opRecord = op;
   _opUser = data.user;
+  // Show nav status
+  var navStatus = document.getElementById('nav-status');
+  if (navStatus) navStatus.style.display = 'flex';
+  var navLogout = document.getElementById('nav-logout-btn');
+  if (navLogout) navLogout.style.display = 'block';
+  var navUser = document.getElementById('nav-user-name');
+  if (navUser) navUser.textContent = op.company_name || data.user.email;
   loadDashboard();
 }
 
