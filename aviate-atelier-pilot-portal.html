@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aviate Atelier — Pilot Portal</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#07090F;--bg2:#0C0F18;--bg3:#12151F;
+  --card:#12151F;--card2:#181C28;
+  --border:#1E2230;--border2:#262B3A;
+  --text:#EDF2FF;--text2:#8892A4;--text3:#3E4558;
+  --gold:#C8912A;--gold2:#E5A83C;
+  --green:#4FD080;--red:#FF5E5E;--blue:#5BA3FF;
+  --orange:#FF9F43;--ping:#58F0C8;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;display:flex;flex-direction:column;}
+.nav{display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:52px;border-bottom:1px solid var(--border);background:rgba(7,9,15,0.98);flex-shrink:0;z-index:50;}
+.nav-logo{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:var(--gold2);}
+.nav-tag{font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;background:rgba(88,240,200,0.12);border:1px solid rgba(88,240,200,0.25);color:var(--ping);padding:3px 8px;border-radius:6px;margin-left:8px;}
+.pilot-chip{display:flex;align-items:center;gap:7px;background:var(--card2);border:1px solid var(--border2);border-radius:20px;padding:4px 10px 4px 5px;}
+.pilot-chip-av{width:28px;height:28px;border-radius:50%;background:rgba(88,240,200,0.12);border:1.5px solid rgba(88,240,200,0.3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--ping);}
+.pilot-chip-name{font-size:12px;font-weight:600;}
+.status-pill{display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid rgba(79,208,128,0.3);background:rgba(79,208,128,0.08);color:var(--green);}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:breathe 2s ease-in-out infinite;}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.5);opacity:.6}}
+.bottom-nav{display:flex;border-top:1px solid var(--border);background:var(--bg);flex-shrink:0;}
+.bn-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 0;cursor:pointer;gap:3px;}
+.bn-item.active .bn-icon{color:var(--gold2);}
+.bn-item.active .bn-lbl{color:var(--gold2);}
+.bn-icon{font-size:18px;color:var(--text3);}
+.bn-lbl{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);}
+.screen-wrap{flex:1;overflow-y:auto;}
+.screen{display:none;padding:18px 16px;}
+.screen.active{display:block;}
+.eh-wrap{background:linear-gradient(135deg,rgba(88,240,200,0.08),rgba(7,9,15,0));border:1px solid rgba(88,240,200,0.12);border-radius:20px;padding:22px 20px;margin-bottom:18px;}
+.eh-label{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ping);margin-bottom:5px;opacity:.8;}
+.eh-amount{font-family:'Playfair Display',serif;font-size:40px;font-weight:700;margin-bottom:2px;}
+.eh-sub{font-size:12px;color:var(--text2);}
+.eh-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px;}
+.eh-cell{background:rgba(255,255,255,0.04);border-radius:10px;padding:10px;text-align:center;}
+.eh-cval{font-family:'DM Mono',monospace;font-size:15px;font-weight:700;}
+.eh-clbl{font-size:9px;color:var(--text3);margin-top:2px;text-transform:uppercase;letter-spacing:.05em;}
+.sec-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.sec-title{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);}
+.see-all{font-size:11px;color:var(--gold2);cursor:pointer;}
+.req-item{background:var(--card2);border:1px solid var(--border2);border-radius:14px;padding:14px 15px;margin-bottom:9px;display:flex;align-items:center;gap:12px;}
+.ri-ico{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.ri-ico.a{background:rgba(88,240,200,0.1);border:1px solid rgba(88,240,200,0.2);}
+.ri-ico.d{background:rgba(79,208,128,0.1);border:1px solid rgba(79,208,128,0.2);}
+.ri-ico.p{background:rgba(229,168,60,0.1);border:1px solid rgba(229,168,60,0.2);}
+.ri-route{font-size:14px;font-weight:700;}
+.ri-meta{font-size:11px;color:var(--text3);margin-top:2px;}
+.ri-amt{margin-left:auto;text-align:right;}
+.ri-gross{font-family:'DM Mono',monospace;font-size:13px;font-weight:700;}
+.ri-net{font-size:10px;color:var(--green);margin-top:2px;}
+.ri-stat{font-size:9px;font-weight:800;padding:2px 8px;border-radius:6px;margin-top:3px;display:inline-block;}
+.rs-a{background:rgba(88,240,200,0.1);color:var(--ping);}
+.rs-d{background:rgba(79,208,128,0.1);color:var(--green);}
+.rs-p{background:rgba(229,168,60,0.1);color:var(--gold2);}
+.sim-btn{background:rgba(88,240,200,0.05);border:1.5px dashed rgba(88,240,200,0.2);border-radius:14px;padding:14px 15px;margin-bottom:18px;display:flex;align-items:center;gap:12px;cursor:pointer;width:100%;}
+.sim-ico{width:36px;height:36px;border-radius:10px;background:rgba(88,240,200,0.1);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.ping-overlay{position:fixed;inset:0;z-index:200;display:flex;align-items:flex-end;justify-content:center;pointer-events:none;opacity:0;transition:opacity .25s;}
+.ping-overlay.show{opacity:1;pointer-events:all;}
+.ping-bg{position:absolute;inset:0;background:rgba(7,9,15,0.9);}
+.ping-card{position:relative;width:100%;max-width:480px;background:var(--bg2);border:1px solid rgba(88,240,200,0.2);border-bottom:none;border-radius:24px 24px 0 0;padding:28px 20px 34px;transform:translateY(100%);transition:transform .35s cubic-bezier(.16,1,.3,1);}
+.ping-overlay.show .ping-card{transform:translateY(0);}
+.ping-pulse{position:absolute;top:-18px;left:50%;transform:translateX(-50%);width:40px;height:40px;border-radius:50%;background:rgba(88,240,200,0.12);border:2px solid var(--ping);display:flex;align-items:center;justify-content:center;animation:rpulse 1.1s ease-in-out infinite;}
+@keyframes rpulse{0%,100%{box-shadow:0 0 0 0 rgba(88,240,200,.4)}50%{box-shadow:0 0 0 14px rgba(88,240,200,0)}}
+.ping-title{font-family:'Playfair Display',serif;font-size:21px;font-weight:700;text-align:center;margin:16px 0 3px;}
+.ping-sub{font-size:12px;color:var(--text2);text-align:center;margin-bottom:18px;}
+.ping-route{font-family:'Playfair Display',serif;font-size:26px;font-weight:600;text-align:center;color:var(--ping);margin-bottom:3px;}
+.ping-aircraft{font-size:12px;color:var(--text2);text-align:center;margin-bottom:14px;}
+.ping-details{background:var(--bg3);border:1px solid var(--border2);border-radius:14px;padding:14px;margin-bottom:14px;}
+.pd-row{display:flex;justify-content:space-between;padding:5px 0;font-size:12.5px;border-bottom:1px solid rgba(255,255,255,0.04);}
+.pd-row:last-child{border-bottom:none;}
+.pd-lbl{color:var(--text2);}
+.pd-val{font-weight:700;}
+.offer-box{background:rgba(88,240,200,0.06);border:1.5px solid rgba(88,240,200,0.2);border-radius:14px;padding:14px;text-align:center;margin-bottom:14px;}
+.ob-label{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ping);margin-bottom:3px;}
+.ob-amount{font-family:'Playfair Display',serif;font-size:36px;font-weight:700;color:var(--ping);}
+.ob-unit{font-size:12px;color:var(--text2);margin-top:2px;}
+.ob-net{font-size:11px;color:var(--text3);margin-top:4px;}
+.timer-bar{height:3px;background:var(--border);border-radius:2px;margin-bottom:6px;overflow:hidden;}
+.timer-fill{height:100%;background:linear-gradient(90deg,var(--ping),var(--gold2));border-radius:2px;width:100%;transition:width 1s linear;}
+.timer-lbl{font-size:10px;color:var(--text3);text-align:center;margin-bottom:14px;}
+.ping-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.btn-accept{height:52px;border-radius:14px;border:none;background:linear-gradient(135deg,#2ECC8A,var(--green));color:#060A12;font-size:14px;font-weight:800;cursor:pointer;}
+.btn-counter{height:52px;border-radius:14px;border:1.5px solid rgba(229,168,60,0.4);background:rgba(229,168,60,0.08);color:var(--gold2);font-size:14px;font-weight:700;cursor:pointer;}
+.btn-decline{width:100%;height:42px;border-radius:12px;border:1px solid var(--border2);background:transparent;color:var(--text3);font-size:13px;cursor:pointer;}
+.counter-box{display:none;background:var(--bg3);border-radius:14px;padding:16px;margin-bottom:14px;}
+.counter-box.show{display:block;}
+.cb-label{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;}
+.counter-wrap{display:flex;align-items:center;gap:10px;}
+.c-adj{width:38px;height:38px;border-radius:10px;border:1px solid var(--border2);background:var(--card2);color:var(--text);font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.c-inp{flex:1;height:38px;background:var(--bg2);border:1px solid rgba(229,168,60,0.3);border-radius:10px;color:var(--gold2);font-family:'DM Mono',monospace;font-size:22px;font-weight:700;text-align:center;outline:none;}
+.c-net{font-size:11px;color:var(--text3);text-align:center;margin-top:8px;}
+.btn-send-c{width:100%;height:44px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#080D14;font-size:13px;font-weight:800;cursor:pointer;margin-top:10px;}
+.profile-hd{background:var(--card2);border:1px solid var(--border2);border-radius:20px;padding:22px;margin-bottom:14px;text-align:center;}
+.pav{width:68px;height:68px;border-radius:18px;background:rgba(88,240,200,0.12);border:2px solid rgba(88,240,200,0.3);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:var(--ping);margin:0 auto 10px;}
+.pname{font-family:'Playfair Display',serif;font-size:21px;font-weight:600;margin-bottom:3px;}
+.pbadges{display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin-top:8px;}
+.pb{font-size:10px;font-weight:700;padding:3px 9px;border-radius:7px;}
+.pb-faa{background:rgba(91,163,255,0.1);border:1px solid rgba(91,163,255,0.25);color:var(--blue);}
+.pb-pic{background:rgba(229,168,60,0.1);border:1px solid rgba(229,168,60,0.25);color:var(--gold2);}
+.pb-av{background:rgba(79,208,128,0.1);border:1px solid rgba(79,208,128,0.25);color:var(--green);}
+.ic{background:var(--card2);border:1px solid var(--border2);border-radius:16px;padding:16px;margin-bottom:12px;}
+.ic-t{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:12px;}
+.ic-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:12.5px;}
+.ic-row:last-child{border-bottom:none;}
+.ic-lbl{color:var(--text2);}
+.ic-val{font-weight:600;}
+.hrs-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.hs{background:var(--bg3);border-radius:10px;padding:10px;text-align:center;}
+.hs-v{font-family:'DM Mono',monospace;font-size:15px;font-weight:700;}
+.hs-l{font-size:9px;color:var(--text3);margin-top:2px;text-transform:uppercase;letter-spacing:.05em;}
+.rate-row{display:flex;align-items:center;gap:10px;background:rgba(229,168,60,0.06);border:1px solid rgba(229,168,60,0.2);border-radius:12px;padding:12px 14px;}
+.rate-val{font-family:'DM Mono',monospace;font-size:22px;font-weight:700;color:var(--gold2);flex:1;}
+.btn-edit{height:32px;padding:0 12px;border-radius:8px;border:1px solid rgba(229,168,60,0.3);background:transparent;color:var(--gold2);font-size:11px;font-weight:700;cursor:pointer;}
+.avail-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.av-opt{padding:10px 8px;border-radius:11px;border:1.5px solid var(--border2);text-align:center;cursor:pointer;font-size:12px;font-weight:600;color:var(--text3);transition:all .15s;}
+.av-opt.sel{border-color:var(--green);background:rgba(79,208,128,0.08);color:var(--green);}
+.type-tag{display:inline-flex;background:rgba(255,255,255,0.04);border:1px solid var(--border2);border-radius:6px;padding:4px 9px;font-size:11px;color:var(--text2);margin:3px 2px;}
+.earn-period{display:flex;gap:4px;background:var(--bg3);border-radius:10px;padding:3px;margin-bottom:16px;width:fit-content;}
+.ep-b{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;color:var(--text3);cursor:pointer;border:none;background:none;}
+.ep-b.active{background:var(--card2);color:var(--gold2);}
+.earn-total{background:var(--card2);border:1px solid var(--border2);border-radius:16px;padding:16px;margin-bottom:14px;}
+.et-lbl{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;}
+.et-amt{font-family:'Playfair Display',serif;font-size:34px;font-weight:700;margin-bottom:7px;}
+.et-break{display:flex;gap:12px;font-size:12px;color:var(--text2);}
+.bar-chart{display:flex;align-items:flex-end;gap:5px;height:76px;margin:14px 0 4px;}
+.bar{flex:1;border-radius:4px 4px 0 0;background:rgba(229,168,60,0.15);cursor:pointer;transition:background .15s;}
+.bar.act{background:var(--gold2);}
+.bar-lbl{font-size:9px;color:var(--text3);text-align:center;margin-top:4px;}
+.po-item{background:var(--card2);border:1px solid var(--border2);border-radius:12px;padding:13px 14px;margin-bottom:8px;display:flex;align-items:center;gap:11px;}
+.po-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.po-op{font-size:13px;font-weight:600;}
+.po-dt{font-size:10px;color:var(--text3);margin-top:1px;}
+.po-net{margin-left:auto;font-family:'DM Mono',monospace;font-size:14px;font-weight:700;color:var(--green);}
+.po-fee{font-size:10px;color:var(--text3);text-align:right;margin-top:1px;}
+.doc-item{background:var(--card2);border-radius:13px;padding:14px 15px;display:flex;align-items:center;gap:12px;margin-bottom:8px;}
+.toast{position:fixed;top:66px;left:50%;transform:translateX(-50%) translateY(-16px);background:var(--card2);border:1px solid var(--border2);border-radius:12px;padding:11px 16px;display:flex;align-items:center;gap:9px;z-index:300;opacity:0;transition:all .2s;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<div class="nav">
+  <div style="display:flex;align-items:center;">
+    <div class="nav-logo">Aviate Atelier</div>
+    <span class="nav-tag">Pilot</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <div class="pilot-chip">
+      <div class="pilot-chip-av">JW</div>
+      <div class="pilot-chip-name" id="pilot-chip-name">J. Whitfield</div>
+    </div>
+    <button onclick="pilotSignOut()" style="height:28px;padding:0 10px;border-radius:7px;border:1px solid var(--border2);background:transparent;color:var(--text3);font-size:11px;cursor:pointer;">Sign Out</button>
+    <button class="status-pill" onclick="cycleStatus(this)">
+      <span class="status-dot" id="sdot"></span>
+      <span id="slabel">Available</span>
+    </button>
+  </div>
+</div>
+
+<div class="screen-wrap">
+
+  <!-- HOME -->
+  <div id="scr-home" class="screen active">
+    <div class="eh-wrap">
+      <div class="eh-label">Month to Date</div>
+      <div class="eh-amount" id="eh-amount">$12,750</div>
+      <div class="eh-sub">After 5% platform fee &middot; Feb 2026</div>
+      <div class="eh-grid">
+        <div class="eh-cell"><div class="eh-cval">3</div><div class="eh-clbl">Trips</div></div>
+        <div class="eh-cell"><div class="eh-cval">12</div><div class="eh-clbl">Flight Days</div></div>
+        <div class="eh-cell"><div class="eh-cval" id="eh-fee">$671</div><div class="eh-clbl">Fees Paid</div></div>
+      </div>
+    </div>
+    <button class="sim-btn" onclick="triggerPing()">
+      <div class="sim-ico">&#x1F4E1;</div>
+      <div style="flex:1;text-align:left;">
+        <div style="font-size:13px;font-weight:700;color:var(--ping);">Simulate Incoming Request</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px;">Tap to see how an operator request arrives</div>
+      </div>
+      <div style="color:var(--text3);">&#x276F;</div>
+    </button>
+    <div class="sec-head"><div class="sec-title">Recent Assignments</div><div class="see-all">See All</div></div>
+    <div id="assignments-list">
+    <div class="req-item">
+      <div class="ri-ico a">&#x2708;</div>
+      <div style="flex:1;"><div class="ri-route">MIA &#x2192; TEB</div><div class="ri-meta">Gulfstream G550 &middot; Apex Air &middot; Feb 24</div></div>
+      <div class="ri-amt"><div class="ri-gross">$850/day</div><div class="ri-net">+$807.50 net</div><div class="ri-stat rs-a">In Progress</div></div>
+    </div>
+    <div class="req-item">
+      <div class="ri-ico d">&#x2713;</div>
+      <div style="flex:1;"><div class="ri-route">VNY &#x2192; ASE</div><div class="ri-meta">Challenger 350 &middot; Summit Jets &middot; Feb 18&ndash;20</div></div>
+      <div class="ri-amt"><div class="ri-gross">$2,550 total</div><div class="ri-net">+$2,422.50 net</div><div class="ri-stat rs-d">Completed</div></div>
+    </div>
+    <div class="req-item">
+      <div class="ri-ico p">&#x23F3;</div>
+      <div style="flex:1;"><div class="ri-route">ADS &#x2192; SJD</div><div class="ri-meta">G550 &middot; Apex Air &middot; Mar 15</div></div>
+      <div class="ri-amt"><div class="ri-gross">$900/day</div><div class="ri-net">Counter accepted</div><div class="ri-stat rs-p">Confirmed</div></div>
+    </div>
+    </div><div style="height:16px;"></div>
+  </div>
+
+  <!-- EARNINGS -->
+  <div id="scr-earnings" class="screen">
+    <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:600;margin-bottom:16px;">Earnings</div>
+    <div class="earn-period">
+      <button class="ep-b active">This Month</button>
+      <button class="ep-b" onclick="swPeriod(this)">Last Month</button>
+      <button class="ep-b" onclick="swPeriod(this)">YTD</button>
+    </div>
+    <div class="earn-total">
+      <div class="et-lbl">February 2026</div>
+      <div class="et-amt">$12,750</div>
+      <div class="et-break">
+        <span>Gross: $13,421</span>
+        <span style="color:var(--orange);">Fee: &minus;$671</span>
+        <span style="color:var(--green);font-weight:700;">Net: $12,750</span>
+      </div>
+    </div>
+    <div style="background:var(--card2);border:1px solid var(--border2);border-radius:16px;padding:16px;margin-bottom:14px;">
+      <div class="et-lbl">Daily &mdash; Feb</div>
+      <div class="bar-chart">
+        <div><div class="bar" style="height:30%;"></div><div class="bar-lbl">1</div></div>
+        <div><div class="bar" style="height:55%;"></div><div class="bar-lbl">3</div></div>
+        <div><div class="bar" style="height:55%;"></div><div class="bar-lbl">5</div></div>
+        <div><div class="bar" style="height:0%;"></div><div class="bar-lbl">9</div></div>
+        <div><div class="bar" style="height:100%;"></div><div class="bar-lbl">12</div></div>
+        <div><div class="bar" style="height:100%;"></div><div class="bar-lbl">13</div></div>
+        <div><div class="bar act" style="height:65%;"></div><div class="bar-lbl">24</div></div>
+        <div><div class="bar" style="height:40%;"></div><div class="bar-lbl">27</div></div>
+      </div>
+    </div>
+    <div class="sec-head"><div class="sec-title">Payouts</div></div>
+    <div class="po-item"><div class="po-dot" style="background:var(--green);"></div><div><div class="po-op">Apex Air &mdash; MIA &#x2192; TEB</div><div class="po-dt">Feb 24 &middot; 1 day &middot; G550</div></div><div style="margin-left:auto;text-align:right;"><div class="po-net">$807.50</div><div class="po-fee">&minus;$42.50 fee</div></div></div>
+    <div class="po-item"><div class="po-dot" style="background:var(--green);"></div><div><div class="po-op">Summit Jets &mdash; VNY &#x2192; ASE</div><div class="po-dt">Feb 18&ndash;20 &middot; 3 days &middot; CL350</div></div><div style="margin-left:auto;text-align:right;"><div class="po-net">$2,422.50</div><div class="po-fee">&minus;$127.50 fee</div></div></div>
+    <div class="po-item"><div class="po-dot" style="background:var(--blue);"></div><div><div class="po-op">Apex Air &mdash; ADS &#x2192; SJD</div><div class="po-dt">Mar 15 &middot; Upcoming</div></div><div style="margin-left:auto;text-align:right;"><div class="po-net" style="color:var(--gold2);">$855 pending</div><div class="po-fee">&minus;$45 est.</div></div></div>
+    <div style="height:16px;"></div>
+  </div>
+
+  <!-- PROFILE -->
+  <div id="scr-profile" class="screen">
+    <div class="profile-hd">
+      <div class="pav">JW</div>
+      <div class="pname" id="pname-el">James Whitfield</div>
+      <div style="font-size:12px;color:var(--text2);" id="psub-el">Miami, FL &middot; Nearest: MIA</div>
+      <div class="pbadges">
+        <span class="pb pb-faa">FAA ATP</span>
+        <span class="pb pb-pic">PIC</span>
+        <span class="pb pb-av">Available</span>
+      </div>
+    </div>
+    <div class="ic">
+      <div class="ic-t">My Daily Rate</div>
+      <div class="rate-row">
+        <div><div style="font-size:10px;color:var(--text3);margin-bottom:2px;">Gross rate</div><div class="rate-val" id="profile-rate-val">$850 <span style="font-size:13px;color:var(--text3);">/day</span></div></div>
+        <button class="btn-edit" onclick="toast('Rate updated','Your new rate is live on your profile')">Edit</button>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:9px;line-height:1.6;"><span id="profile-rate-net">Net after 5% fee: <strong style="color:var(--green);">$807.50/day</strong></span>. Counter any offer during incoming requests.</div>
+    </div>
+    <div class="ic">
+      <div class="ic-t">Availability</div>
+      <div class="avail-grid">
+        <div class="av-opt sel" onclick="selAv(this)">Available Now</div>
+        <div class="av-opt" onclick="selAv(this)">Open to Offers</div>
+        <div class="av-opt" onclick="selAv(this)">Not Available</div>
+      </div>
+    </div>
+    <div class="ic">
+      <div class="ic-t">Qualifications</div>
+      <div class="ic-row"><span class="ic-lbl">Authority</span><span class="ic-val">FAA (Primary)</span></div>
+      <div class="ic-row"><span class="ic-lbl">Certificate</span><span class="ic-val">ATP &mdash; A1234567</span></div>
+      <div class="ic-row"><span class="ic-lbl">Medical</span><span class="ic-val">First Class &middot; Exp Jun 2026</span></div>
+      <div class="ic-row"><span class="ic-lbl">Position</span><span class="ic-val">PIC</span></div>
+      <div class="ic-row"><span class="ic-lbl">Nearest Airport</span><span class="ic-val">MIA &mdash; Miami Int&apos;l</span></div>
+    </div>
+    <div class="ic">
+      <div class="ic-t">Flight Hours</div>
+      <div class="hrs-strip">
+        <div class="hs"><div class="hs-v">14,200</div><div class="hs-l">Total</div></div>
+        <div class="hs"><div class="hs-v">8,400</div><div class="hs-l">PIC</div></div>
+        <div class="hs"><div class="hs-v">11,400</div><div class="hs-l">Turbine</div></div>
+        <div class="hs"><div class="hs-v">87</div><div class="hs-l">Last 90d</div></div>
+        <div class="hs"><div class="hs-v">9,600</div><div class="hs-l">IFR</div></div>
+        <div class="hs"><div class="hs-v">3,200</div><div class="hs-l">Intl</div></div>
+      </div>
+    </div>
+    <div class="ic">
+      <div class="ic-t">Type Ratings</div>
+      <span class="type-tag">&#x2708; G550 &middot; PIC &middot; Current</span>
+      <span class="type-tag">&#x2708; G650 &middot; PIC &middot; Current</span>
+      <span class="type-tag">&#x2708; CL350 &middot; PIC &middot; Lapsing</span>
+    </div>
+    <div style="height:16px;"></div>
+  </div>
+
+  <!-- DOCS -->
+  <div id="scr-docs" class="screen">
+    <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:600;margin-bottom:16px;">My Documents</div>
+    <div class="doc-item" style="border:1px solid rgba(79,208,128,0.2);">
+      <span style="font-size:18px;">&#x1F4CB;</span>
+      <div style="flex:1;"><div style="font-size:13px;font-weight:600;">FAA Pilot Certificate &mdash; ATP</div><div style="font-size:11px;color:var(--text3);margin-top:1px;">Uploaded Jan 2026</div></div>
+      <span style="font-size:10px;font-weight:800;color:var(--green);background:rgba(79,208,128,0.1);border:1px solid rgba(79,208,128,0.2);padding:3px 8px;border-radius:6px;">&#x2713; Verified</span>
+    </div>
+    <div class="doc-item" style="border:1px solid rgba(79,208,128,0.2);">
+      <span style="font-size:18px;">&#x1F3E5;</span>
+      <div style="flex:1;"><div style="font-size:13px;font-weight:600;">FAA First Class Medical</div><div style="font-size:11px;color:var(--text3);margin-top:1px;">Exp Jun 2026</div></div>
+      <span style="font-size:10px;font-weight:800;color:var(--green);background:rgba(79,208,128,0.1);border:1px solid rgba(79,208,128,0.2);padding:3px 8px;border-radius:6px;">&#x2713; Verified</span>
+    </div>
+    <div class="doc-item" style="border:1px solid rgba(79,208,128,0.2);">
+      <span style="font-size:18px;">&#x1F4C4;</span>
+      <div style="flex:1;"><div style="font-size:13px;font-weight:600;">Type Rating &mdash; G550</div><div style="font-size:11px;color:var(--text3);margin-top:1px;">Simuflight 2024</div></div>
+      <span style="font-size:10px;font-weight:800;color:var(--green);background:rgba(79,208,128,0.1);border:1px solid rgba(79,208,128,0.2);padding:3px 8px;border-radius:6px;">&#x2713; Verified</span>
+    </div>
+    <div class="doc-item" style="border:1px solid rgba(255,159,67,0.2);">
+      <span style="font-size:18px;">&#x1F4D2;</span>
+      <div style="flex:1;"><div style="font-size:13px;font-weight:600;">Pilot R&eacute;sum&eacute;</div><div style="font-size:11px;color:var(--text3);margin-top:1px;">Uploaded Jan 2026</div></div>
+      <span style="font-size:10px;font-weight:800;color:var(--orange);background:rgba(255,159,67,0.1);border:1px solid rgba(255,159,67,0.2);padding:3px 8px;border-radius:6px;">&#x23F3; Review</span>
+    </div>
+    <div class="doc-item" style="border:1.5px dashed var(--border2);cursor:pointer;" onclick="toast('Ready','Select a document to upload')">
+      <span style="font-size:18px;color:var(--text3);">+</span>
+      <div><div style="font-size:13px;font-weight:600;color:var(--text2);">Upload Document</div><div style="font-size:11px;color:var(--text3);margin-top:1px;">License &middot; Medical &middot; Type Rating &middot; Logbook &middot; R&eacute;sum&eacute;</div></div>
+    </div>
+    <div style="height:16px;"></div>
+  </div>
+
+</div><!-- /screen-wrap -->
+
+<div class="bottom-nav">
+  <div class="bn-item active" onclick="sw('home',this)"><div class="bn-icon">&#x1F3E0;</div><div class="bn-lbl">Home</div></div>
+  <div class="bn-item" onclick="sw('earnings',this)"><div class="bn-icon">&#x1F4B0;</div><div class="bn-lbl">Earnings</div></div>
+  <div class="bn-item" onclick="triggerPing()"><div class="bn-icon" style="color:var(--ping);font-size:20px;">&#x1F4E1;</div><div class="bn-lbl" style="color:var(--ping);">Requests</div></div>
+  <div class="bn-item" onclick="sw('profile',this)"><div class="bn-icon">&#x1F464;</div><div class="bn-lbl">Profile</div></div>
+  <div class="bn-item" onclick="sw('docs',this)"><div class="bn-icon">&#x1F4C4;</div><div class="bn-lbl">Docs</div></div>
+</div>
+
+<!-- PING OVERLAY -->
+<div class="ping-overlay" id="ping-overlay">
+  <div class="ping-bg" onclick="closePing()"></div>
+  <div class="ping-card">
+    <div class="ping-pulse">&#x1F4E1;</div>
+    <div class="ping-title">New Assignment Request</div>
+    <div class="ping-sub">Apex Air Charter is requesting you for an upcoming trip</div>
+    <div class="ping-route" id="ping-route">OPF &#x2192; TEB</div>
+    <div class="ping-aircraft" id="ping-aircraft">Gulfstream G550 (N481SP) &middot; PIC Required</div>
+    <div class="ping-details"><div id="ping-details-body">
+      <div class="pd-row"><span class="pd-lbl">Departure</span><span class="pd-val">March 12, 2026</span></div>
+      <div class="pd-row"><span class="pd-lbl">Depart Time</span><span class="pd-val">08:00</span></div>
+      <div class="pd-row"><span class="pd-lbl">Duration</span><span class="pd-val">1 day trip</span></div>
+      <div class="pd-row"><span class="pd-lbl">Passengers</span><span class="pd-val">4 pax</span></div>
+      <div class="pd-row"><span class="pd-lbl">Operator</span><span class="pd-val">Apex Air Charter LLC</span></div>
+    </div></div>
+    <div class="offer-box">
+      <div class="ob-label">Operator&apos;s Offer</div>
+      <div class="ob-amount" id="offer-amount-text">$850</div>
+      <div class="ob-unit">per day &middot; 1 day trip</div>
+      <div class="ob-net">Your net after 5% fee: <strong style="color:var(--green);" id="offer-net-text">$807.50</strong></div>
+    </div>
+    <div class="timer-bar"><div class="timer-fill" id="tfill"></div></div>
+    <div class="timer-lbl">Respond within <strong id="tcnt">45</strong> seconds</div>
+    <div class="counter-box" id="cbox">
+      <div class="cb-label">Your Counter Offer (per day)</div>
+      <div class="counter-wrap">
+        <button class="c-adj" onclick="adj(-50)">&#x2212;</button>
+        <input class="c-inp" id="cinp" value="950" type="number" oninput="updNet()">
+        <button class="c-adj" onclick="adj(50)">+</button>
+      </div>
+      <div class="c-net">Your net: <strong id="cnet" style="color:var(--green);">$902.50</strong> &middot; Operator sees: $950</div>
+      <button class="btn-send-c" onclick="sendCounter()">Send Counter Offer &#x2192;</button>
+    </div>
+    <div class="ping-actions">
+      <button class="btn-accept" onclick="acceptPing()">&#x2713; Accept $850</button>
+      <button class="btn-counter" onclick="showCounter()">Counter Rate</button>
+    </div>
+    <button class="btn-decline" onclick="declinePing()">Decline this request</button>
+  </div>
+</div>
+
+<div class="toast" id="toast-el">
+  <span id="t-ico">&#x2713;</span>
+  <div><div id="t-title" style="font-size:13px;font-weight:700;"></div><div id="t-sub" style="font-size:11px;color:var(--text3);margin-top:1px;"></div></div>
+</div>
+
+<script>
+// ── SUPABASE CLIENT ──
+const _sb = supabase.createClient(
+  'https://hkjldgjvxgrutnqzwfql.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhramxkZ2p2eGdydXRucXp3ZnFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwNDMwOTYsImV4cCI6MjA4NzYxOTA5Nn0.aNICtFHRMeP5Xu9ssgLlziC6cbR6-WXcTCbM1UY1q3g'
+);
+var _pilotUser = null;
+var _pilotRecord = null;
+var _activeRequestId = null;
+
+// Check session on load
+(async function() {
+  const { data: { session } } = await _sb.auth.getSession();
+  if (session) {
+    const { data: pilot } = await _sb.from('pilots').select('*').eq('user_id', session.user.id).single();
+    if (pilot) {
+      _pilotRecord = pilot;
+      _pilotUser = session.user;
+      updatePilotUI(pilot);
+      subscribeToRequests(pilot.id);
+    }
+  }
+})();
+
+function updatePilotUI(pilot) {
+  var initials = (pilot.first_name[0] + pilot.last_name[0]).toUpperCase();
+  var els = document.querySelectorAll('.pilot-chip-av, #acct-avatar');
+  els.forEach(function(el) { el.textContent = initials; });
+  var nameEl = document.querySelector('.pilot-chip-name');
+  if (nameEl) nameEl.textContent = pilot.first_name + ' ' + pilot.last_name;
+}
+
+// ── REALTIME: Listen for incoming pilot requests ──
+function subscribeToRequests(pilotId) {
+  _sb.channel('pilot-requests-' + pilotId)
+    .on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'pilot_requests',
+      filter: 'pilot_id=eq.' + pilotId
+    }, function(payload) {
+      var req = payload.new;
+      if (req.status === 'pending') {
+        showRealPing(req);
+      }
+    })
+    .subscribe();
+}
+
+function showRealPing(req) {
+  _activeRequestId = req.id;
+  // Get operator name
+  _sb.from('operators').select('company_name').eq('id', req.operator_id).single().then(function(res) {
+    var opName = res.data ? res.data.company_name : 'Charter Operator';
+    document.querySelector('.ping-sub').textContent = opName + ' is requesting you for an upcoming trip';
+  });
+  document.querySelector('.ping-route').innerHTML = req.dep_airport + ' &#x2192; ' + req.arr_airport;
+  document.querySelector('.ping-aircraft').textContent = (req.aircraft_type || 'Aircraft') + (req.aircraft_tail ? ' (' + req.aircraft_tail + ')' : '') + ' · PIC Required';
+  // Update ping details
+  var rows = document.querySelectorAll('.pd-row .pd-val');
+  if (rows[0]) rows[0].textContent = new Date(req.departure_date).toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'});
+  if (rows[1]) rows[1].textContent = req.departure_time || '—';
+  if (rows[2]) rows[2].textContent = req.days + ' day' + (req.days > 1 ? 's' : '');
+  if (rows[3]) rows[3].textContent = (req.passenger_count || '—') + ' pax';
+  // Update offer
+  document.querySelector('.ob-amount').textContent = '$' + req.offered_rate;
+  document.querySelector('.ob-net strong').textContent = '$' + (req.offered_rate * 0.95).toFixed(2);
+  document.getElementById('cinp').value = Math.round(req.offered_rate * 1.1);
+  // Show ping
+  document.body.style.background = 'rgba(88,240,200,0.04)';
+  setTimeout(function() { document.body.style.background = ''; }, 300);
+  document.getElementById('ping-overlay').classList.add('show');
+  startTimer();
+}
+
+// Override accept/counter/decline to write back to Supabase
+var _origAccept = null;
+
+async function acceptPing() {
+  clearInterval(tInterval);
+  if (_activeRequestId) {
+    await _sb.from('pilot_requests').update({
+      status: 'accepted',
+      final_rate: parseFloat(document.querySelector('.ob-amount').textContent.replace('$','')),
+      responded_at: new Date().toISOString()
+    }).eq('id', _activeRequestId);
+  }
+  closePing();
+  toast('Assignment Accepted!', 'Confirmed · Net payout on completion');
+}
+
+async function sendCounter() {
+  var val = parseFloat(document.getElementById('cinp').value);
+  if (_activeRequestId) {
+    await _sb.from('pilot_requests').update({
+      status: 'countered',
+      counter_rate: val,
+      responded_at: new Date().toISOString()
+    }).eq('id', _activeRequestId);
+  }
+  clearInterval(tInterval);
+  closePing();
+  toast('Counter Sent: $' + val + '/day', 'Operator notified — awaiting response');
+}
+
+async function declinePing() {
+  clearInterval(tInterval);
+  if (_activeRequestId) {
+    await _sb.from('pilot_requests').update({
+      status: 'declined',
+      responded_at: new Date().toISOString()
+    }).eq('id', _activeRequestId);
+  }
+  closePing();
+}
+
+var tInterval=null,tSec=45;
+function sw(n,el){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.bn-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('scr-'+n).classList.add('active');
+  if(el)el.classList.add('active');
+}
+function triggerPing(){
+  document.body.style.background='rgba(88,240,200,0.04)';
+  setTimeout(()=>document.body.style.background='',250);
+  document.getElementById('cbox').classList.remove('show');
+  document.getElementById('ping-overlay').classList.add('show');
+  startTimer();
+}
+function startTimer(){
+  clearInterval(tInterval);tSec=45;
+  var f=document.getElementById('tfill'),c=document.getElementById('tcnt');
+  f.style.transition='none';f.style.width='100%';
+  setTimeout(()=>{f.style.transition='width 45s linear';f.style.width='0%';},50);
+  tInterval=setInterval(()=>{
+    tSec--;c.textContent=tSec;
+    if(tSec<=0){clearInterval(tInterval);closePing();toast('Request expired','No response — passed to next available pilot');}
+  },1000);
+}
+function closePing(){clearInterval(tInterval);document.getElementById('ping-overlay').classList.remove('show');}
+function acceptPing(){clearInterval(tInterval);closePing();toast('Assignment Accepted!','Apex Air — OPF to TEB, Mar 12, $807.50 net');}
+function declinePing(){clearInterval(tInterval);closePing();toast('Declined','Request passed to next pilot');}
+function showCounter(){document.getElementById('cbox').classList.toggle('show');updNet();}
+function adj(d){var i=document.getElementById('cinp');i.value=Math.max(200,parseInt(i.value)+d);updNet();}
+function updNet(){var v=parseInt(document.getElementById('cinp').value)||0;document.getElementById('cnet').textContent='$'+(v*.95).toFixed(2);}
+function sendCounter(){var v=document.getElementById('cinp').value;clearInterval(tInterval);closePing();toast('Counter Sent: $'+v+'/day','Apex Air notified — awaiting response');}
+function cycleStatus(btn){
+  var states=[{t:'Available',c:'#4FD080'},{t:'Open to Offers',c:'#FF9F43'},{t:'Not Available',c:'#FF5E5E'}];
+  var lbl=document.getElementById('slabel'),dot=document.getElementById('sdot');
+  var ci=states.findIndex(s=>s.t===lbl.textContent);
+  var nx=states[(ci+1)%states.length];
+  lbl.textContent=nx.t;dot.style.background=nx.c;
+  dot.style.animation=nx.t==='Not Available'?'none':'breathe 2s ease-in-out infinite';
+}
+function selAv(el){document.querySelectorAll('.av-opt').forEach(o=>o.classList.remove('sel'));el.classList.add('sel');}
+function swPeriod(el){document.querySelectorAll('.ep-b').forEach(b=>b.classList.remove('active'));el.classList.add('active');}
+function toast(title,sub){
+  var t=document.getElementById('toast-el');
+  document.getElementById('t-title').textContent=title;
+  document.getElementById('t-sub').textContent=sub;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3500);
+}
+
+// ═══════════════════════════════════════
+// SUPABASE CONFIG — PILOT PORTAL
+// ═══════════════════════════════════════
+const SUPABASE_URL = 'https://hkjldgjvxgrutnqzwfql.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhramxkZ2p2eGdydXRucXp3ZnFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwNDMwOTYsImV4cCI6MjA4NzYxOTA5Nn0.aNICtFHRMeP5Xu9ssgLlziC6cbR6-WXcTCbM1UY1q3g';
+
+// REST wrapper
+const sb = {
+  async query(method, table, body, params) {
+    params = params || '';
+    var session = auth.load();
+    var token = (session && (session.access_token || (session.session && session.session.access_token))) || SUPABASE_KEY;
+    var headers = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
+    var res = await fetch(SUPABASE_URL + '/rest/v1/' + table + params, { method: method, headers: headers, body: body ? JSON.stringify(body) : null });
+    if (!res.ok) { var e = await res.json(); throw new Error(e.message || e.hint || 'DB error'); }
+    return method === 'DELETE' ? null : res.json();
+  },
+  async insert(table, data) { return this.query('POST', table, data); },
+  async select(table, params) { return this.query('GET', table, null, params || ''); },
+  async update(table, data, params) { return this.query('PATCH', table, data, params || ''); },
+  async delete(table, params) { return this.query('DELETE', table, null, params || ''); },
+};
+
+// Auth wrapper
+const auth = {
+  async signUp(email, password, metadata) {
+    metadata = metadata || {};
+    var res = await fetch(SUPABASE_URL + '/auth/v1/signup', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, password: password, data: metadata })
+    });
+    var data = await res.json();
+    if (data.error) throw new Error(data.error.message || data.msg || 'Signup failed');
+    return data;
+  },
+  async signIn(email, password) {
+    var res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, password: password })
+    });
+    var data = await res.json();
+    if (data.error) throw new Error(data.error_description || data.error || 'Sign in failed');
+    return data;
+  },
+  save(session) { try { localStorage.setItem('aa_pilot_session', JSON.stringify(session)); } catch(e){} },
+  load() { try { return JSON.parse(localStorage.getItem('aa_pilot_session')); } catch(e){ return null; } },
+  clear() { localStorage.removeItem('aa_pilot_session'); localStorage.removeItem('aa_pilot'); },
+  getToken() { var s = this.load(); return s && (s.access_token || (s.session && s.session.access_token)); }
+};
+
+// ═══ REALTIME — LIVE PILOT REQUESTS ═══
+var _currentPilotId = null;
+var _realtimeWS = null;
+
+function startRealtimeListener(pilotId) {
+  _currentPilotId = pilotId;
+  if (_realtimeWS) { try { _realtimeWS.close(); } catch(e){} }
+  var wsUrl = SUPABASE_URL.replace('https://', 'wss://') + '/realtime/v1/websocket?apikey=' + SUPABASE_KEY + '&vsn=1.0.0';
+  try {
+    _realtimeWS = new WebSocket(wsUrl);
+    _realtimeWS.onopen = function() {
+      // Subscribe to pilot_requests where pilot_id = this pilot
+      _realtimeWS.send(JSON.stringify({
+        topic: 'realtime:public:pilot_requests:pilot_id=eq.' + pilotId,
+        event: 'phx_join',
+        payload: {},
+        ref: '1'
+      }));
+      // Also subscribe to all inserts
+      _realtimeWS.send(JSON.stringify({
+        topic: 'realtime:public:pilot_requests',
+        event: 'phx_join',
+        payload: { config: { filter: 'pilot_id=eq.' + pilotId } },
+        ref: '2'
+      }));
+    };
+    _realtimeWS.onmessage = function(event) {
+      try {
+        var msg = JSON.parse(event.data);
+        if (msg.event === 'INSERT' || msg.event === 'phx_reply') {
+          var rec = msg.payload && (msg.payload.record || msg.payload.new);
+          if (rec && rec.pilot_id === pilotId && rec.status === 'pending') {
+            _pendingRequestId = rec.id;
+            // Flash screen and show ping
+            document.body.style.background = 'rgba(88,240,200,0.05)';
+            setTimeout(function(){ document.body.style.background = ''; }, 300);
+            showPingFromDB(rec);
+          }
+        }
+      } catch(e) {}
+    };
+    _realtimeWS.onerror = function() { /* silent */ };
+    // Fallback: poll every 10s for pending requests
+    setTimeout(function pollRequests() {
+      checkPendingRequests(pilotId);
+      setTimeout(pollRequests, 10000);
+    }, 3000);
+  } catch(e) {
+    // WebSocket failed, just use polling
+    setTimeout(function pollRequests() {
+      checkPendingRequests(pilotId);
+      setTimeout(pollRequests, 10000);
+    }, 3000);
+  }
+}
+
+var _pendingRequestId = null;
+var _pendingRequest = null;
+
+async function checkPendingRequests(pilotId) {
+  try {
+    var reqs = await sb.select('pilot_requests', '?pilot_id=eq.' + pilotId + '&status=eq.pending&order=created_at.desc&limit=1');
+    if (reqs && reqs.length > 0 && reqs[0].id !== _pendingRequestId) {
+      _pendingRequestId = reqs[0].id;
+      _pendingRequest = reqs[0];
+      document.body.style.background = 'rgba(88,240,200,0.05)';
+      setTimeout(function(){ document.body.style.background = ''; }, 300);
+      showPingFromDB(reqs[0]);
+    }
+  } catch(e) {}
+}
+
+function showPingFromDB(req) {
+  _pendingRequest = req;
+  document.getElementById('ping-route').textContent = (req.dep_airport || 'TBD') + ' \u2192 ' + (req.arr_airport || 'TBD');
+  document.getElementById('ping-aircraft').textContent = (req.aircraft_type || 'Aircraft TBD') + ' \u00b7 PIC Required';
+  document.getElementById('offer-amount-text').textContent = '$' + (req.offered_rate || 0);
+  document.getElementById('offer-net-text').textContent = '$' + ((req.offered_rate || 0) * 0.95).toFixed(2);
+  // Update ping details
+  var ddate = req.departure_date ? new Date(req.departure_date).toLocaleDateString('en-US', {month:'long',day:'numeric',year:'numeric'}) : 'TBD';
+  var detailsEl = document.getElementById('ping-details-body');
+  if (detailsEl) {
+    detailsEl.innerHTML =
+      '<div class="pd-row"><span class="pd-lbl">Departure</span><span class="pd-val">' + ddate + '</span></div>' +
+      '<div class="pd-row"><span class="pd-lbl">Duration</span><span class="pd-val">' + (req.days || 1) + ' day' + (req.days > 1 ? 's' : '') + '</span></div>' +
+      '<div class="pd-row"><span class="pd-lbl">Aircraft</span><span class="pd-val">' + (req.aircraft_type || 'TBD') + '</span></div>' +
+      '<div class="pd-row"><span class="pd-lbl">Tail No.</span><span class="pd-val">' + (req.aircraft_tail || 'TBD') + '</span></div>';
+  }
+  triggerPing();
+}
+
+async function acceptPingDB() {
+  if (_pendingRequest) {
+    try {
+      await sb.update('pilot_requests', { status: 'accepted', final_rate: _pendingRequest.offered_rate, responded_at: new Date().toISOString() }, '?id=eq.' + _pendingRequest.id);
+    } catch(e) { console.warn('acceptPingDB:', e); }
+    _pendingRequest = null; _pendingRequestId = null;
+  }
+  clearInterval(tInterval); closePing();
+  toast('Assignment Accepted!', 'Confirmed — you will receive payout details within 24 hours');
+  loadEarningsFromDB();
+}
+
+async function counterPingDB() {
+  if (!_pendingRequest) return;
+  var counterRate = parseFloat(document.getElementById('cinp').value) || 0;
+  try {
+    await sb.update('pilot_requests', { status: 'countered', counter_rate: counterRate, responded_at: new Date().toISOString() }, '?id=eq.' + _pendingRequest.id);
+  } catch(e) { console.warn('counterPingDB:', e); }
+  clearInterval(tInterval); closePing();
+  toast('Counter Sent: $' + counterRate + '/day', 'Operator notified \u2014 awaiting response');
+  _pendingRequest = null; _pendingRequestId = null;
+}
+
+async function declinePingDB() {
+  if (_pendingRequest) {
+    try {
+      await sb.update('pilot_requests', { status: 'declined', responded_at: new Date().toISOString() }, '?id=eq.' + _pendingRequest.id);
+    } catch(e) { console.warn('declinePingDB:', e); }
+    _pendingRequest = null; _pendingRequestId = null;
+  }
+  clearInterval(tInterval); closePing();
+  toast('Declined', 'Request passed to next available pilot');
+}
+
+// ═══ DATA LOADING ═══
+var _pilotProfile = null;
+
+async function loadPilotDashboard(pilotId) {
+  try {
+    var pilots = await sb.select('pilots', '?id=eq.' + pilotId);
+    if (pilots && pilots.length > 0) {
+      _pilotProfile = pilots[0];
+      updateProfileUI(_pilotProfile);
+    }
+  } catch(e) { console.warn('loadPilotDashboard:', e); }
+  loadEarningsFromDB();
+  loadAssignmentsFromDB();
+  startRealtimeListener(pilotId);
+}
+
+async function loadEarningsFromDB() {
+  if (!_pilotProfile) return;
+  try {
+    var now = new Date();
+    var firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+    var reqs = await sb.select('pilot_requests', '?pilot_id=eq.' + _pilotProfile.id + '&status=in.(accepted,completed)&departure_date=gte.' + firstOfMonth);
+    var totalGross = 0;
+    if (reqs) { reqs.forEach(function(r){ totalGross += (r.final_rate || r.offered_rate || 0) * (r.days || 1); }); }
+    var totalNet = totalGross * 0.95;
+    var feeTotal = totalGross * 0.05;
+    var earningsEl = document.getElementById('eh-amount');
+    if (earningsEl) earningsEl.textContent = '$' + Math.round(totalNet).toLocaleString();
+    var feeEl = document.getElementById('eh-fee');
+    if (feeEl) feeEl.textContent = '$' + Math.round(feeTotal).toLocaleString();
+    var tripsEl = document.getElementById('eh-trips');
+    if (tripsEl && reqs) tripsEl.textContent = reqs.length;
+  } catch(e) { console.warn('loadEarningsFromDB:', e); }
+}
+
+async function loadAssignmentsFromDB() {
+  if (!_pilotProfile) return;
+  try {
+    var reqs = await sb.select('pilot_requests', '?pilot_id=eq.' + _pilotProfile.id + '&order=created_at.desc&limit=10');
+    if (!reqs || !reqs.length) return;
+    var list = document.getElementById('assignments-list');
+    if (!list) return;
+    var statusMap = { accepted: 'rs-a', completed: 'rs-d', pending: 'rs-p', countered: 'rs-p', declined: 'rs-p' };
+    var labelMap = { accepted: 'Confirmed', completed: 'Completed', pending: 'Pending', countered: 'Countered', declined: 'Declined' };
+    var iconMap = { accepted: 'a', completed: 'd', pending: 'p', countered: 'p', declined: 'p' };
+    list.innerHTML = reqs.map(function(r) {
+      var gross = (r.final_rate || r.offered_rate || 0) * (r.days || 1);
+      var net = gross * 0.95;
+      var st = r.status || 'pending';
+      return '<div class="req-item">' +
+        '<div class="ri-ico ' + (iconMap[st] || 'p') + '">' + (st === 'completed' || st === 'accepted' ? '&#x2713;' : '&#x23F3;') + '</div>' +
+        '<div style="flex:1;"><div class="ri-route">' + (r.dep_airport||'?') + ' &#x2192; ' + (r.arr_airport||'?') + '</div>' +
+        '<div class="ri-meta">' + (r.aircraft_type || 'Aircraft TBD') + ' &middot; ' + (r.departure_date || '') + '</div></div>' +
+        '<div class="ri-amt"><div class="ri-gross">$' + (r.final_rate || r.offered_rate || 0) + '/day</div>' +
+        '<div class="ri-net">+$' + net.toFixed(2) + ' net</div>' +
+        '<div class="ri-stat ' + (statusMap[st] || 'rs-p') + '">' + (labelMap[st] || st) + '</div></div>' +
+      '</div>';
+    }).join('');
+  } catch(e) { console.warn('loadAssignmentsFromDB:', e); }
+}
+
+function updateProfileUI(p) {
+  if (!p) return;
+  var name = (p.first_name || '') + ' ' + (p.last_name || '');
+  var initials = ((p.first_name || 'P')[0] + (p.last_name || 'P')[0]).toUpperCase();
+  var els = {
+    'pname-el': name,
+    'psub-el': (p.city || '') + (p.nearest_airport_code ? ' &middot; Nearest: ' + p.nearest_airport_code : ''),
+    'pilot-chip-name': name.split(' ')[0] + ' ' + (name.split(' ')[1] || '')[0] + '.',
+  };
+  for (var id in els) {
+    var el = document.getElementById(id);
+    if (el) el.innerHTML = els[id];
+  }
+  // Rate
+  var rateEl = document.getElementById('profile-rate-val');
+  if (rateEl && p.daily_rate) rateEl.textContent = '$' + p.daily_rate + ' /day';
+  var rateNetEl = document.getElementById('profile-rate-net');
+  if (rateNetEl && p.daily_rate) rateNetEl.textContent = 'Net after 5% fee: $' + (p.daily_rate * 0.95).toFixed(2) + '/day';
+}
+
+// ═══ AUTH FLOW ═══
+var _pilotUser = null;
+
+async function pilotLogin() {
+  var email = document.getElementById('pilot-login-email').value.trim();
+  var pass = document.getElementById('pilot-login-pass').value;
+  var errEl = document.getElementById('pilot-login-error');
+  var btn = document.getElementById('pilot-login-btn');
+  if (!email || !pass) { errEl.textContent = 'Enter your email and password.'; errEl.style.display = 'block'; return; }
+  btn.textContent = 'Signing in...'; btn.disabled = true; errEl.style.display = 'none';
+  try {
+    var session = await auth.signIn(email, pass);
+    auth.save(session);
+    var pilots = await sb.select('pilots', '?email=eq.' + encodeURIComponent(email));
+    if (!pilots || !pilots.length) throw new Error('No pilot profile found. Please register first.');
+    _pilotUser = pilots[0];
+    localStorage.setItem('aa_pilot', JSON.stringify(_pilotUser));
+    showPilotDashboard(_pilotUser);
+  } catch(e) {
+    btn.textContent = 'Sign In'; btn.disabled = false;
+    errEl.textContent = e.message; errEl.style.display = 'block';
+  }
+}
+
+async function pilotRegister() {
+  var firstName = document.getElementById('preg-first').value.trim();
+  var lastName = document.getElementById('preg-last').value.trim();
+  var email = document.getElementById('preg-email').value.trim();
+  var pass = document.getElementById('preg-pass').value;
+  var errEl = document.getElementById('preg-error');
+  var btn = document.getElementById('preg-btn');
+  if (!firstName || !lastName || !email || !pass) { errEl.textContent = 'All fields required.'; errEl.style.display = 'block'; return; }
+  if (pass.length < 8) { errEl.textContent = 'Password must be at least 8 characters.'; errEl.style.display = 'block'; return; }
+  btn.textContent = 'Creating account...'; btn.disabled = true; errEl.style.display = 'none';
+  try {
+    var session = await auth.signUp(email, pass, { first_name: firstName, last_name: lastName });
+    auth.save(session);
+    var pilotRec = {
+      email: email,
+      first_name: firstName,
+      last_name: lastName,
+      primary_authority: document.getElementById('preg-authority').value || 'FAA',
+      availability: 'available',
+      verification_status: 'pending'
+    };
+    var saved = await sb.insert('pilots', pilotRec);
+    _pilotUser = Array.isArray(saved) ? saved[0] : saved;
+    localStorage.setItem('aa_pilot', JSON.stringify(_pilotUser));
+    showPilotDashboard(_pilotUser);
+    toast('Welcome to Aviate Atelier', 'Complete your profile to get discovered by operators');
+  } catch(e) {
+    btn.textContent = 'Create Account'; btn.disabled = false;
+    errEl.textContent = e.message; errEl.style.display = 'block';
+  }
+}
+
+function showPilotDashboard(pilot) {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app-shell').style.display = 'flex';
+  if (pilot) {
+    updateProfileUI(pilot);
+    loadPilotDashboard(pilot.id);
+  }
+}
+
+// Check existing session on load
+window.addEventListener('DOMContentLoaded', function() {
+  var session = auth.load();
+  var savedPilot = null;
+  try { savedPilot = JSON.parse(localStorage.getItem('aa_pilot')); } catch(e){}
+  if (session && savedPilot && savedPilot.id) {
+    _pilotUser = savedPilot;
+    showPilotDashboard(_pilotUser);
+  } else {
+    document.getElementById('auth-screen').style.display = 'flex';
+    document.getElementById('app-shell').style.display = 'none';
+  }
+});
+
+function pilotSignOut() {
+  auth.clear();
+  localStorage.removeItem('aa_pilot');
+  if (_realtimeWS) { try{ _realtimeWS.close(); } catch(e){} }
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('app-shell').style.display = 'none';
+}
+
+// Override accept/counter/decline to use DB versions
+function acceptPing() { acceptPingDB(); }
+function sendCounter() { counterPingDB(); }
+function declinePing() { declinePingDB(); }
+
+
+function switchAuthTab(tab) {
+  document.getElementById('auth-panel-login').style.display = tab === 'login' ? 'block' : 'none';
+  document.getElementById('auth-panel-register').style.display = tab === 'register' ? 'block' : 'none';
+  document.getElementById('auth-tab-login').style.background = tab === 'login' ? 'var(--card2)' : 'none';
+  document.getElementById('auth-tab-login').style.color = tab === 'login' ? 'var(--gold2)' : 'var(--text3)';
+  document.getElementById('auth-tab-register').style.background = tab === 'register' ? 'var(--card2)' : 'none';
+  document.getElementById('auth-tab-register').style.color = tab === 'register' ? 'var(--gold2)' : 'var(--text3)';
+}
+</script>
+</div><!-- /app-shell -->
+</body>
+</html>
