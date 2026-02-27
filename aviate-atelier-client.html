@@ -3,825 +3,2090 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Aviate Atelier — Charter Flights</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>Aviate Atelier — Book a Charter Flight</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root{
-  --bg:#07090F;--bg2:#0C0F18;--bg3:#12151F;
-  --card:#12151F;--card2:#181C28;
-  --border:#1E2230;--border2:#262B3A;
-  --text:#EDF2FF;--text2:#8892A4;--text3:#3E4558;
-  --gold:#C8912A;--gold2:#E5A83C;
-  --green:#4FD080;--red:#FF5E5E;--blue:#5BA3FF;--orange:#FF9F43;
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --navy: #0B1D3A; --navy2: #1A3460;
+  --gold: #C8912A; --gold2: #E5A83C; --gold-lt: #FDF3E0;
+  --green: #1A7A4A; --green2: #4FD080; --green-lt: #E6F5EE;
+  --blue: #1D5FAB; --blue-lt: #EAF1FB;
+  --red: #C0392B;
+  --bg: #080D14; --bg2: #0D1117; --bg3: #161B22;
+  --card: #161B22; --card2: #1C2333;
+  --border: #21262D; --border2: #30363D;
+  --text: #E6EDF3; --text2: #8B949E; --text3: #6E7681;
+  --lt-bg: #F8FAFC; --lt-card: #FFFFFF;
+  --lt-border: #E2E8F0; --lt-text: #1A202C; --lt-muted: #718096;
 }
-*{margin:0;padding:0;box-sizing:border-box;}
-html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;}
+body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--text); min-height: 100vh; overflow-x: hidden; }
+
+/* NAV */
+.top-nav { height: 60px; background: rgba(13,17,23,0.97); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 32px; gap: 16px; position: sticky; top: 0; z-index: 100; }
+.nav-logo { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 600; color: var(--text); font-style: italic; letter-spacing: 0.01em; }
+.nav-logo span { color: var(--gold2); font-style: normal; font-weight: 500; letter-spacing: 0.06em; margin-left: 4px; }
+.nav-divider { width: 1px; height: 20px; background: var(--border2); }
+.nav-section { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); }
+.nav-spacer { flex: 1; }
+.nav-status { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text3); }
+.nav-status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green2); animation: pulse 1.4s infinite; }
+@keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(79,208,128,.5)} 70%{box-shadow:0 0 0 6px rgba(79,208,128,0)} 100%{box-shadow:0 0 0 0 rgba(79,208,128,0)} }
+
 /* VIEWS */
-.view{display:none;height:100%;overflow-y:auto;flex-direction:column;}
-.view.active{display:flex;}
-/* LANDING */
-.landing-bg{min-height:100%;background:radial-gradient(ellipse at 60% 20%,rgba(200,145,42,0.08) 0%,transparent 55%),radial-gradient(ellipse at 20% 80%,rgba(91,163,255,0.04) 0%,transparent 50%),var(--bg);display:flex;flex-direction:column;}
-.landing-nav{display:flex;justify-content:space-between;align-items:center;padding:20px 22px;flex-shrink:0;}
-.logo{font-family:'Playfair Display',serif;font-size:19px;font-weight:700;color:var(--gold2);}
-.btn-login-nav{height:34px;padding:0 16px;border-radius:10px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;}
-.landing-hero{flex:1;display:flex;flex-direction:column;justify-content:center;padding:20px 22px 30px;}
-.hero-eyebrow{font-size:10px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:14px;opacity:.8;}
-.hero-title{font-family:'Playfair Display',serif;font-size:38px;font-weight:700;line-height:1.15;margin-bottom:14px;}
-.hero-title em{font-style:italic;color:var(--gold2);}
-.hero-sub{font-size:14px;color:var(--text2);line-height:1.7;margin-bottom:32px;}
-.btn-primary{height:52px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#080D14;font-size:15px;font-weight:800;cursor:pointer;font-family:'DM Sans',sans-serif;width:100%;margin-bottom:10px;}
-.btn-secondary{height:52px;border-radius:14px;border:1.5px solid var(--border2);background:transparent;color:var(--text2);font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;width:100%;}
-.landing-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:22px;border-top:1px solid var(--border);}
-.ls-item{text-align:center;}
-.ls-val{font-family:'Playfair Display',serif;font-size:22px;font-weight:600;color:var(--gold2);}
-.ls-lbl{font-size:10px;color:var(--text3);margin-top:2px;text-transform:uppercase;letter-spacing:.05em;}
-/* AUTH */
-.auth-wrap{flex:1;display:flex;flex-direction:column;padding:20px 22px;}
-.auth-back{display:flex;align-items:center;gap:6px;color:var(--text3);font-size:13px;cursor:pointer;margin-bottom:28px;background:none;border:none;font-family:'DM Sans',sans-serif;}
-.auth-title{font-family:'Playfair Display',serif;font-size:28px;font-weight:600;margin-bottom:6px;}
-.auth-sub{font-size:13px;color:var(--text2);margin-bottom:28px;line-height:1.6;}
-.field-label{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;}
-.field-input{width:100%;height:46px;background:var(--card2);border:1px solid var(--border2);border-radius:12px;padding:0 14px;color:var(--text);font-size:14px;outline:none;font-family:'DM Sans',sans-serif;transition:border-color .15s;}
-.field-input:focus{border-color:rgba(229,168,60,0.4);}
-.field-wrap{margin-bottom:14px;}
-.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.auth-switch{font-size:13px;color:var(--text2);text-align:center;margin-top:16px;}
-.auth-switch span{color:var(--gold2);cursor:pointer;font-weight:600;}
-/* SEARCH */
-.search-header{background:var(--bg);border-bottom:1px solid var(--border);padding:16px 20px;flex-shrink:0;}
-.search-header-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
-.user-chip{display:flex;align-items:center;gap:7px;}
-.user-av{width:30px;height:30px;border-radius:50%;background:rgba(229,168,60,0.12);border:1.5px solid rgba(229,168,60,0.3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold2);}
-.user-name{font-size:13px;font-weight:600;}
-.search-card{background:var(--card2);border:1px solid var(--border2);border-radius:18px;padding:18px;}
-.route-row{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
-.airport-btn{flex:1;height:52px;background:var(--bg3);border:1px solid var(--border2);border-radius:12px;display:flex;flex-direction:column;justify-content:center;padding:0 12px;cursor:pointer;border:none;text-align:left;}
-.ab-code{font-family:'DM Mono',monospace;font-size:20px;font-weight:700;color:var(--text);line-height:1;}
-.ab-name{font-size:10px;color:var(--text3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.swap-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.date-pax-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
-.dp-btn{height:46px;background:var(--bg3);border:1px solid var(--border2);border-radius:11px;display:flex;flex-direction:column;justify-content:center;padding:0 12px;cursor:pointer;border:none;text-align:left;}
-.dp-lbl{font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);}
-.dp-val{font-size:13px;font-weight:600;color:var(--text);margin-top:1px;}
-.btn-search{height:50px;width:100%;border-radius:13px;border:none;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#080D14;font-size:15px;font-weight:800;cursor:pointer;font-family:'DM Sans',sans-serif;}
-/* AIRPORT SEARCH MODAL */
-.modal-overlay{position:fixed;inset:0;background:rgba(7,9,15,0.92);backdrop-filter:blur(10px);z-index:100;display:none;flex-direction:column;padding:20px;}
-.modal-overlay.open{display:flex;}
-.modal-back{display:flex;align-items:center;gap:6px;color:var(--text3);font-size:13px;cursor:pointer;background:none;border:none;font-family:'DM Sans',sans-serif;margin-bottom:14px;}
-.airport-search-inp{width:100%;height:50px;background:var(--card2);border:1.5px solid rgba(229,168,60,0.3);border-radius:14px;padding:0 16px;color:var(--text);font-size:16px;outline:none;font-family:'DM Sans',sans-serif;margin-bottom:12px;}
-.airport-results{flex:1;overflow-y:auto;}
-.ar-item{display:flex;align-items:center;gap:12px;padding:13px 14px;border:1px solid var(--border2);border-radius:12px;margin-bottom:8px;cursor:pointer;background:var(--card2);}
-.ar-code{font-family:'DM Mono',monospace;font-size:16px;font-weight:700;color:var(--gold2);width:44px;flex-shrink:0;}
-.ar-info{}
-.ar-name{font-size:13px;font-weight:600;color:var(--text);}
-.ar-city{font-size:11px;color:var(--text3);margin-top:1px;}
-/* QUOTES/RESULTS */
-.results-header{background:var(--bg);border-bottom:1px solid var(--border);padding:16px 20px 14px;flex-shrink:0;}
-.rh-back{display:flex;align-items:center;gap:6px;color:var(--text3);font-size:13px;cursor:pointer;margin-bottom:12px;background:none;border:none;font-family:'DM Sans',sans-serif;}
-.rh-route{font-family:'Playfair Display',serif;font-size:22px;font-weight:600;}
-.rh-meta{font-size:12px;color:var(--text2);margin-top:3px;}
-.rh-status{display:inline-flex;align-items:center;gap:5px;margin-top:8px;font-size:11px;font-weight:700;color:var(--orange);background:rgba(255,159,67,0.1);border:1px solid rgba(255,159,67,0.2);border-radius:8px;padding:4px 10px;}
-.rh-status-dot{width:6px;height:6px;border-radius:50%;background:var(--orange);animation:breathe 1.5s ease-in-out infinite;}
-@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.5);opacity:.5}}
-.results-list{padding:16px;}
-.quote-card{background:var(--card2);border:1px solid var(--border2);border-radius:18px;padding:18px;margin-bottom:14px;}
-.qc-top{display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;}
-.qc-operator{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;}
-.qc-aircraft{font-size:16px;font-weight:700;color:var(--text);}
-.qc-tail{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);margin-top:2px;}
-.qc-price{margin-left:auto;text-align:right;}
-.qc-amount{font-family:'Playfair Display',serif;font-size:26px;font-weight:600;color:var(--gold2);}
-.qc-inc{font-size:10px;color:var(--text3);margin-top:2px;}
-.qc-specs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
-.qc-spec{background:var(--bg3);border-radius:9px;padding:9px 10px;text-align:center;}
-.qs-val{font-size:13px;font-weight:700;}
-.qs-lbl{font-size:9px;color:var(--text3);margin-top:2px;text-transform:uppercase;letter-spacing:.04em;}
-.qc-eta{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);margin-bottom:14px;}
-.qc-actions{display:flex;gap:8px;}
-.btn-book{flex:2;height:44px;border-radius:11px;border:none;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#080D14;font-size:13px;font-weight:800;cursor:pointer;font-family:'DM Sans',sans-serif;}
-.btn-details{flex:1;height:44px;border-radius:11px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;}
-/* BOOKING FLOW */
-.booking-nav{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);flex-shrink:0;}
-.bnav-back{background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer;}
-.bnav-title{font-size:15px;font-weight:700;}
-.bnav-step{font-size:12px;color:var(--text3);}
-.progress-strip{height:2px;background:var(--border);flex-shrink:0;}
-.progress-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));transition:width .3s ease;}
-.booking-body{flex:1;overflow-y:auto;padding:20px;}
-.section-title{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:12px;}
-.booking-footer{padding:16px 20px;border-top:1px solid var(--border);flex-shrink:0;}
-/* PASSENGER CARDS */
-.pax-card{background:var(--card2);border:1px solid var(--border2);border-radius:14px;padding:14px;margin-bottom:10px;}
-.pax-card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
-.pax-num{font-size:12px;font-weight:700;color:var(--gold2);}
-.pax-remove{width:26px;height:26px;border-radius:7px;border:1px solid var(--border2);background:transparent;color:var(--red);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-/* PREFERENCES */
-.pref-option{display:flex;align-items:center;justify-content:space-between;background:var(--card2);border:1.5px solid var(--border2);border-radius:12px;padding:14px 16px;margin-bottom:8px;cursor:pointer;}
-.pref-option.sel{border-color:rgba(229,168,60,0.4);background:rgba(229,168,60,0.05);}
-.po-title{font-size:14px;font-weight:600;}
-.po-desc{font-size:11px;color:var(--text2);margin-top:2px;}
-.po-price{font-size:13px;font-weight:700;color:var(--gold2);}
-/* PAYMENT SUMMARY */
-.payment-line{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:13px;}
-.payment-line:last-child{border-bottom:none;}
-.pl-label{color:var(--text2);}
-.pl-val{font-weight:600;}
-.total-line{display:flex;justify-content:space-between;align-items:center;padding:14px 0 0;font-size:16px;font-weight:800;border-top:1px solid var(--border2);}
-.total-val{font-family:'Playfair Display',serif;font-size:26px;font-weight:600;color:var(--gold2);}
-.card-field-wrap{background:var(--card2);border:1px solid var(--border2);border-radius:14px;padding:16px;margin-bottom:10px;}
-.card-row{display:flex;gap:10px;}
-/* TRIPS DASHBOARD */
-.trips-header{background:var(--bg);border-bottom:1px solid var(--border);padding:16px 20px;flex-shrink:0;}
-.trips-tabs{display:flex;gap:4px;background:var(--bg3);border-radius:10px;padding:3px;margin-top:12px;}
-.tt-btn{flex:1;padding:7px;border-radius:8px;font-size:12px;font-weight:600;color:var(--text3);cursor:pointer;text-align:center;}
-.tt-btn.active{background:var(--card2);color:var(--gold2);}
-.trip-card{background:var(--card2);border:1px solid var(--border2);border-radius:16px;padding:16px;margin-bottom:12px;}
-.tc-route{font-family:'Playfair Display',serif;font-size:20px;font-weight:600;margin-bottom:3px;}
-.tc-meta{font-size:12px;color:var(--text2);}
-.tc-status{display:inline-flex;align-items:center;gap:5px;margin-top:8px;font-size:10px;font-weight:800;padding:3px 9px;border-radius:7px;}
-.tc-st-upcoming{background:rgba(91,163,255,0.1);color:var(--blue);}
-.tc-st-completed{background:rgba(79,208,128,0.1);color:var(--green);}
-.tc-st-pending{background:rgba(255,159,67,0.1);color:var(--orange);}
-.tc-footer{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.04);}
-.tc-aircraft{font-size:12px;color:var(--text3);}
-.tc-price{font-family:'DM Mono',monospace;font-size:14px;font-weight:700;color:var(--gold2);}
-/* BOTTOM NAV */
-.bottom-nav{display:flex;border-top:1px solid var(--border);background:var(--bg);flex-shrink:0;}
-.bn-i{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 0;cursor:pointer;gap:3px;}
-.bn-i.active .bn-ic{color:var(--gold2);}
-.bn-i.active .bn-lb{color:var(--gold2);}
-.bn-ic{font-size:19px;color:var(--text3);}
-.bn-lb{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);}
+.view { display: none; }
+.view.active { display: block; }
+
+/* LANDING — choose path */
+.landing { min-height: calc(100vh - 60px); display: flex; align-items: center; justify-content: center; padding: 48px 24px; }
+.landing-inner { max-width: 800px; width: 100%; text-align: center; }
+.landing-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold2); margin-bottom: 16px; }
+.landing-title { font-family: 'Playfair Display', serif; font-size: 48px; font-weight: 600; color: var(--text); line-height: 1.15; margin-bottom: 16px; }
+.landing-title em { color: var(--gold2); font-style: italic; }
+.landing-sub { font-size: 16px; color: var(--text2); line-height: 1.7; margin-bottom: 48px; max-width: 520px; margin-left: auto; margin-right: auto; }
+.path-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 32px; }
+.path-card { background: var(--card); border: 1.5px solid var(--border); border-radius: 20px; padding: 32px; transition: all 0.25s; text-align: left; cursor: pointer; }
+.path-card:hover { transform: translateY(-3px); }
+.path-card.client-card:hover { border-color: rgba(88,166,255,0.4); box-shadow: 0 16px 48px rgba(88,166,255,0.1); }
+.path-card.operator-card:hover { border-color: rgba(229,168,60,0.4); box-shadow: 0 16px 48px rgba(229,168,60,0.1); }
+.path-icon { width: 52px; height: 52px; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 24px; }
+.path-icon.blue { background: rgba(88,166,255,0.12); border: 1px solid rgba(88,166,255,0.25); }
+.path-icon.gold { background: rgba(229,168,60,0.12); border: 1px solid rgba(229,168,60,0.25); }
+.path-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+.path-desc { font-size: 13px; color: var(--text2); line-height: 1.7; margin-bottom: 20px; }
+.path-features { display: flex; flex-direction: column; gap: 6px; margin-bottom: 24px; }
+.path-feature { font-size: 12px; color: var(--text3); display: flex; align-items: center; gap: 8px; }
+.path-feature::before { content: '✓'; color: var(--green2); font-weight: 700; font-size: 11px; }
+.path-btn { width: 100%; height: 48px; border-radius: 12px; border: none; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; position: relative; z-index: 2; }
+.path-btn.blue-btn { background: #58A6FF; color: var(--bg); }
+.path-btn.blue-btn:hover { background: #79B8FF; }
+.path-btn.gold-btn { background: linear-gradient(135deg, var(--gold) 0%, var(--gold2) 100%); color: var(--bg); box-shadow: 0 8px 24px rgba(201,168,76,0.25); }
+.path-btn.gold-btn:hover { transform: translateY(-1px); }
+.landing-signin { font-size: 13px; color: var(--text3); }
+.landing-signin a { color: var(--gold2); text-decoration: none; cursor: pointer; }
+
+/* ONBOARDING */
+.onboard-wrap { max-width: 680px; margin: 0 auto; padding: 48px 24px 80px; }
+.stepper { display: flex; align-items: center; margin-bottom: 48px; position: relative; }
+.stepper::before { content: ''; position: absolute; top: 18px; left: 18px; right: 18px; height: 2px; background: var(--border); z-index: 0; }
+.step-item { display: flex; flex-direction: column; align-items: center; flex: 1; position: relative; z-index: 1; cursor: pointer; }
+.step-circle { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; margin-bottom: 6px; transition: all 0.3s; border: 2px solid var(--border); background: var(--bg2); color: var(--text3); font-family: 'DM Mono', monospace; }
+.step-item.done .step-circle { background: var(--green); border-color: var(--green); color: white; }
+.step-item.active .step-circle { background: var(--gold2); border-color: var(--gold2); color: var(--bg); box-shadow: 0 0 0 4px rgba(229,168,60,0.15); }
+.step-label { font-size: 9px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); text-align: center; white-space: nowrap; }
+.step-item.active .step-label { color: var(--gold2); }
+.step-item.done .step-label { color: var(--green2); }
+.ob-step { display: none; animation: stepIn 0.3s ease; }
+.ob-step.active { display: block; }
+@keyframes stepIn { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:none} }
+.ob-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold2); margin-bottom: 8px; }
+.ob-title { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 600; color: var(--text); margin-bottom: 8px; line-height: 1.2; }
+.ob-sub { font-size: 14px; color: var(--text2); line-height: 1.7; margin-bottom: 32px; max-width: 560px; }
+
+/* FORM */
+.field-group { margin-bottom: 20px; }
+.field-label { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text2); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.field-required { font-size: 9px; background: rgba(201,168,76,0.15); color: var(--gold2); padding: 2px 7px; border-radius: 5px; font-weight: 700; }
+.field-input { width: 100%; height: 52px; background: var(--card); border: 1.5px solid var(--border); border-radius: 12px; padding: 0 16px; font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--text); outline: none; transition: all 0.2s; }
+.field-input:focus { border-color: var(--gold2); box-shadow: 0 0 0 3px rgba(229,168,60,0.1); }
+.field-input::placeholder { color: var(--text3); }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.field-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.field-select { width: 100%; height: 52px; background: var(--card); border: 1.5px solid var(--border); border-radius: 12px; padding: 0 16px; font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--text); outline: none; appearance: none; transition: all 0.2s; cursor: pointer; }
+.field-select:focus { border-color: var(--gold2); }
+.field-hint { font-size: 11px; color: var(--text3); margin-top: 6px; line-height: 1.5; }
+.field-error { font-size: 11px; color: #FF6B6B; margin-top: 6px; display: none; }
+.field-error.show { display: block; }
+
+/* UPLOAD */
+.upload-zone { background: var(--card); border: 2px dashed var(--border2); border-radius: 14px; padding: 24px; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 12px; }
+.upload-zone:hover { border-color: var(--gold2); background: rgba(229,168,60,0.04); }
+.upload-zone.done { border-color: var(--green2); border-style: solid; background: rgba(79,208,128,0.05); }
+.upload-icon { font-size: 28px; margin-bottom: 8px; }
+.upload-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.upload-sub { font-size: 11px; color: var(--text3); }
+.upload-done-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(79,208,128,0.15); color: var(--green2); font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px; margin-top: 8px; }
+
+/* CERT CARDS */
+.cert-required-card { background: rgba(229,168,60,0.06); border: 1px solid rgba(229,168,60,0.2); border-radius: 14px; padding: 16px; margin-bottom: 14px; }
+.cert-req-title { font-size: 13px; font-weight: 700; color: var(--gold2); margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+.cert-req-desc { font-size: 12px; color: var(--text2); line-height: 1.6; }
+.cert-req-badge { display: inline-block; font-size: 9px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 9px; border-radius: 6px; margin-top: 8px; }
+.cert-req-badge.required { background: rgba(201,168,76,0.2); color: var(--gold2); }
+.cert-req-badge.optional { background: rgba(88,166,255,0.15); color: #58A6FF; }
+
+/* ROLE CARDS */
+.role-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+.role-card { background: var(--card); border: 2px solid var(--border); border-radius: 16px; padding: 20px; cursor: pointer; transition: all 0.2s; position: relative; }
+.role-card:hover { border-color: var(--border2); }
+.role-card.selected { border-color: var(--gold2); background: rgba(229,168,60,0.05); }
+.role-card.selected::after { content: '✓'; position: absolute; top: 12px; right: 14px; width: 22px; height: 22px; background: var(--gold2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: var(--bg); }
+.role-icon { font-size: 28px; margin-bottom: 10px; }
+.role-name { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.role-desc { font-size: 12px; color: var(--text3); line-height: 1.5; }
+
+/* OSA */
+.osa-scroll { background: var(--lt-bg); border: 1px solid var(--border); border-radius: 16px; height: 400px; overflow-y: auto; padding: 32px; margin-bottom: 20px; scrollbar-width: thin; scrollbar-color: var(--border2) transparent; }
+.osa-scroll::-webkit-scrollbar { width: 5px; }
+.osa-scroll::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+.osa-header { text-align: center; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 2px solid var(--lt-border); }
+.osa-logo-text { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--navy); font-style: italic; }
+.osa-logo-text span { color: var(--gold); font-style: normal; }
+.osa-doc-title { font-size: 14px; font-weight: 700; color: var(--lt-text); margin-top: 8px; letter-spacing: 0.04em; text-transform: uppercase; }
+.osa-doc-sub { font-size: 11px; color: var(--lt-muted); margin-top: 4px; }
+.osa-body { color: var(--lt-text); }
+.osa-section { margin-bottom: 22px; }
+.osa-section-title { font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--navy); margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1.5px solid var(--lt-border); }
+.osa-body p { font-size: 12px; line-height: 1.8; color: #374151; margin-bottom: 8px; }
+.osa-body strong { color: var(--lt-text); }
+.osa-highlight { background: rgba(79,208,128,0.06); border-left: 3px solid var(--green); border-radius: 0 8px 8px 0; padding: 12px 14px; margin: 12px 0; font-size: 12px; color: #374151; line-height: 1.7; }
+.osa-warning { background: rgba(201,168,76,0.08); border-left: 3px solid var(--gold); border-radius: 0 8px 8px 0; padding: 12px 14px; margin: 12px 0; font-size: 12px; color: #374151; line-height: 1.7; }
+.schedule-a { background: white; border: 1.5px solid var(--lt-border); border-radius: 10px; overflow: hidden; margin: 12px 0; }
+.schedule-a-header { background: var(--navy); padding: 10px 16px; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.8); }
+.schedule-row { display: grid; grid-template-columns: 2fr 1fr 1fr 2fr; padding: 10px 16px; border-bottom: 1px solid var(--lt-border); font-size: 11px; align-items: center; }
+.schedule-row:last-child { border-bottom: none; }
+.schedule-row.head { background: #F8FAFC; font-weight: 700; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--lt-muted); }
+.schedule-row.beta-row { background: rgba(79,208,128,0.05); }
+.s-rate { font-weight: 800; }
+.s-rate.free { color: var(--green); }
+.s-rate.low { color: #D97706; }
+.s-rate.mid { color: var(--blue); }
+.s-rate.full { color: var(--navy); }
+
+/* CHECKBOXES */
+.ob-checkbox { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px; cursor: pointer; }
+.ob-check { width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0; background: var(--bg3); border: 2px solid var(--border); transition: all .2s; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+.ob-check.checked { background: var(--gold2); border-color: var(--gold2); }
+.ob-check-label { font-size: 13px; color: var(--text2); line-height: 1.6; }
+.ob-check-label a { color: var(--gold2); text-decoration: none; }
+.scroll-prompt { font-size: 11px; color: #D97706; font-weight: 600; display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
+
+/* SIGNATURE */
+.sig-section { background: var(--card); border: 1.5px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 20px; }
+.sig-input { width: 100%; height: 60px; background: var(--bg3); border: 2px solid var(--border); border-radius: 12px; padding: 0 20px; font-family: 'Playfair Display', serif; font-size: 22px; font-style: italic; color: var(--text); outline: none; transition: all 0.2s; }
+.sig-input:focus { border-color: var(--gold2); box-shadow: 0 0 0 3px rgba(229,168,60,0.1); }
+.sig-line { height: 1px; background: var(--border2); margin: 4px 20px 0; }
+.sig-name-label { font-size: 10px; color: var(--text3); margin-top: 4px; padding: 0 20px; }
+
+/* BUTTONS */
+.ob-btn { height: 56px; border-radius: 14px; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; border: none; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; }
+.ob-btn.primary { background: linear-gradient(135deg, var(--gold) 0%, var(--gold2) 100%); color: var(--bg); box-shadow: 0 8px 24px rgba(201,168,76,0.25); }
+.ob-btn.primary:hover { transform: translateY(-1px); box-shadow: 0 12px 32px rgba(201,168,76,0.3); }
+.ob-btn.primary:disabled { opacity: 0.4; pointer-events: none; }
+.ob-btn.ghost { background: var(--card2); color: var(--text2); border: 1px solid var(--border); }
+.ob-btn.ghost:hover { color: var(--text); border-color: var(--border2); }
+.ob-btn-row { display: grid; grid-template-columns: 1fr 2fr; gap: 12px; margin-top: 24px; }
+.ob-btn.loading { opacity: 0.7; pointer-events: none; }
+
+/* SUCCESS */
+.success-screen { text-align: center; padding: 48px 24px; }
+.success-glow { width: 100px; height: 100px; border-radius: 50%; background: rgba(79,208,128,0.12); border: 1px solid rgba(79,208,128,0.3); display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; box-shadow: 0 0 60px rgba(79,208,128,0.15); animation: successPop .5s cubic-bezier(0.34,1.6,0.64,1); }
+@keyframes successPop { from{opacity:0;transform:scale(0.5)} to{opacity:1;transform:scale(1)} }
+
+/* DASHBOARD */
+.dashboard-wrap { display: grid; grid-template-columns: 220px 1fr; min-height: calc(100vh - 60px); }
+.sidebar { background: var(--bg2); border-right: 1px solid var(--border); padding: 20px 0; position: sticky; top: 60px; height: calc(100vh - 60px); overflow-y: auto; }
+.sidebar-company { padding: 0 18px 16px; border-bottom: 1px solid var(--border); margin-bottom: 12px; }
+.sidebar-company-name { font-size: 14px; font-weight: 700; color: var(--text); }
+.sidebar-cert { display: inline-flex; align-items: center; gap: 5px; background: rgba(107,79,187,0.12); border: 1px solid rgba(107,79,187,0.25); color: #9B7EFF; font-size: 9px; font-weight: 800; letter-spacing: .08em; padding: 3px 8px; border-radius: 6px; margin-top: 6px; }
+.sidebar-role { display: inline-flex; align-items: center; gap: 5px; background: rgba(88,166,255,0.1); border: 1px solid rgba(88,166,255,0.2); color: #58A6FF; font-size: 9px; font-weight: 700; padding: 3px 8px; border-radius: 6px; margin-top: 4px; margin-left: 4px; }
+.sidebar-nav { padding: 0 10px; }
+.sidebar-group-label { font-size: 9px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--text3); padding: 14px 8px 6px; }
+.sidebar-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 9px; cursor: pointer; font-size: 13px; color: var(--text2); font-weight: 500; transition: all .15s; margin-bottom: 2px; }
+.sidebar-item:hover { background: var(--card); color: var(--text); }
+.sidebar-item.active { background: rgba(229,168,60,0.1); color: var(--gold2); }
+.sidebar-item svg { width: 16px; height: 16px; opacity: .7; flex-shrink: 0; }
+.sidebar-item.active svg { opacity: 1; }
+.sidebar-badge { margin-left: auto; background: var(--red); color: white; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 8px; }
+.sidebar-badge.gold { background: rgba(229,168,60,0.2); color: var(--gold2); }
+.main-content { padding: 28px; overflow-y: auto; }
+.page-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.page-sub { font-size: 13px; color: var(--text2); margin-bottom: 24px; }
+.stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 24px; }
+.stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 18px; }
+.stat-label { font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--text3); margin-bottom: 8px; }
+.stat-value { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 600; color: var(--text); line-height: 1; }
+.stat-value.green { color: var(--green2); }
+.stat-value.gold { color: var(--gold2); }
+.stat-value.blue { color: #58A6FF; }
+.stat-sub { font-size: 11px; color: var(--text3); margin-top: 5px; }
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.section-title { font-size: 13px; font-weight: 700; color: var(--text); }
+.section-action { font-size: 12px; color: var(--gold2); cursor: pointer; font-weight: 600; }
+.req-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 18px; margin-bottom: 12px; transition: border-color .2s; }
+.req-card.new-req { border-color: rgba(88,166,255,0.4); box-shadow: 0 0 0 1px rgba(88,166,255,0.1); }
+.req-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
+.req-route { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 600; color: var(--text); }
+.req-meta { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.req-badge { font-size: 9px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; padding: 4px 10px; border-radius: 8px; display: flex; align-items: center; gap: 5px; }
+.req-badge.new-b { background: rgba(88,166,255,0.1); border: 1px solid rgba(88,166,255,0.3); color: #58A6FF; }
+.req-badge.quoted-b { background: rgba(79,208,128,0.1); border: 1px solid rgba(79,208,128,0.3); color: var(--green2); }
+.req-details { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 14px; }
+.req-detail-label { font-size: 9px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--text3); margin-bottom: 3px; }
+.req-detail-value { font-size: 13px; color: var(--text); font-weight: 600; }
+.req-actions { display: flex; gap: 8px; }
+.req-btn { flex: 1; height: 40px; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700; cursor: pointer; border: none; transition: all .2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+.req-btn.quote-btn { background: #58A6FF; color: var(--bg); }
+.req-btn.quote-btn:hover { background: #79B8FF; }
+.req-btn.decline-btn { background: var(--border); color: var(--text3); }
+.payout-clean { background: rgba(79,208,128,0.06); border: 1px solid rgba(79,208,128,0.2); border-radius: 12px; padding: 14px 16px; margin-top: 10px; }
+.payout-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.payout-row:last-child { border-bottom: none; }
+.payout-label { font-size: 11px; color: var(--text3); }
+.payout-value { font-size: 13px; font-weight: 700; color: var(--text); }
+.payout-value.green { color: var(--green2); font-size: 17px; }
+.empty-state { text-align: center; padding: 48px 32px; }
+.empty-icon { width: 64px; height: 64px; border-radius: 18px; background: var(--card2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+.empty-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+.empty-sub { font-size: 13px; color: var(--text3); line-height: 1.6; max-width: 280px; margin: 0 auto; }
+
+/* MODAL */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(6px); z-index: 500; display: none; align-items: center; justify-content: center; }
+.modal-overlay.show { display: flex; }
+.modal { background: var(--card2); border: 1px solid var(--border2); border-radius: 20px; padding: 28px; width: 480px; max-width: 95vw; box-shadow: 0 32px 80px rgba(0,0,0,0.6); animation: modalIn .25s cubic-bezier(0.34,1.3,.64,1); }
+@keyframes modalIn { from{opacity:0;transform:scale(.93)} to{opacity:1;transform:scale(1)} }
+.modal-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.modal-sub { font-size: 12px; color: var(--text3); margin-bottom: 22px; }
+.modal-label { font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--text3); margin-bottom: 7px; }
+.modal-input { width: 100%; height: 54px; background: var(--bg2); border: 2px solid var(--border); border-radius: 12px; padding: 0 18px; font-family: 'DM Mono', monospace; font-size: 22px; font-weight: 500; color: var(--text); outline: none; margin-bottom: 16px; transition: all .2s; }
+.modal-input:focus { border-color: var(--gold2); }
+.modal-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.modal-select { width: 100%; height: 46px; background: var(--bg2); border: 2px solid var(--border); border-radius: 12px; padding: 0 14px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--text); outline: none; appearance: none; }
+.settlement-preview { background: rgba(79,208,128,0.07); border: 1px solid rgba(79,208,128,0.2); border-radius: 12px; padding: 14px 16px; margin-bottom: 18px; }
+.sp-row { display: flex; justify-content: space-between; font-size: 12px; padding: 5px 0; }
+.sp-label { color: var(--text3); }
+.sp-value { color: var(--text); font-weight: 700; }
+.sp-row.total .sp-label { color: var(--green2); font-weight: 700; font-size: 13px; }
+.sp-row.total .sp-value { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--green2); }
+.sp-note { font-size: 10px; color: var(--text3); margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.05); line-height: 1.5; }
+.modal-btns { display: flex; gap: 10px; }
+.modal-cancel { flex: 1; height: 48px; background: var(--border); color: var(--text3); border: none; border-radius: 12px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; }
+.modal-submit { flex: 2; height: 48px; background: #58A6FF; color: var(--bg); border: none; border-radius: 12px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background .2s; }
+.modal-submit:hover { background: #79B8FF; }
+.modal-submit.loading { opacity: 0.7; pointer-events: none; }
+
 /* TOAST */
-.toast{position:fixed;top:70px;left:50%;transform:translateX(-50%) translateY(-16px);background:var(--card2);border:1px solid var(--border2);border-radius:12px;padding:11px 16px;display:flex;align-items:center;gap:9px;z-index:500;opacity:0;transition:all .2s;white-space:nowrap;pointer-events:none;}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-select.field-input{appearance:none;}
+.toast { position: fixed; bottom: 28px; right: 28px; z-index: 2000; background: var(--card2); border: 1px solid var(--border2); border-radius: 14px; padding: 14px 18px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); display: flex; align-items: flex-start; gap: 12px; min-width: 280px; max-width: 360px; transform: translateY(120%); transition: transform .35s cubic-bezier(0.34,1.3,.64,1); }
+.toast.show { transform: translateY(0); }
+.toast.success { border-color: rgba(79,208,128,0.4); }
+.toast.error { border-color: rgba(192,57,43,0.4); }
+.toast-icon-wrap { width: 36px; height: 36px; border-radius: 10px; background: rgba(79,208,128,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.toast-icon-wrap.error { background: rgba(192,57,43,0.1); }
+.toast-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+.toast-sub { font-size: 11px; color: var(--text3); line-height: 1.4; }
+
+/* LOGIN */
+.login-wrap { min-height: calc(100vh - 60px); display: flex; align-items: center; justify-content: center; padding: 48px 24px; }
+.login-card { background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 40px; width: 100%; max-width: 420px; }
+.login-title { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.login-sub { font-size: 13px; color: var(--text2); margin-bottom: 28px; line-height: 1.6; }
+.login-divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
+.login-divider::before, .login-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.login-divider span { font-size: 11px; color: var(--text3); font-weight: 600; }
+.login-footer { font-size: 12px; color: var(--text3); text-align: center; margin-top: 20px; }
+.login-footer a { color: var(--gold2); text-decoration: none; cursor: pointer; }
+
+@media (max-width: 900px) {
+  .dashboard-wrap { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .path-cards { grid-template-columns: 1fr; }
+}
+
+/* AIRPORT DROPDOWN */
+.airport-dropdown { position:absolute; top:calc(100% + 4px); left:0; right:0; background:var(--card2); border:1.5px solid var(--border2); border-radius:12px; z-index:200; max-height:220px; overflow-y:auto; box-shadow:0 12px 40px rgba(0,0,0,0.5); }
+.airport-option { padding:10px 14px; cursor:pointer; border-bottom:1px solid var(--border); transition:background .15s; }
+.airport-option:last-child { border-bottom:none; }
+.airport-option:hover { background:rgba(229,168,60,0.08); }
+.airport-code { font-family:'DM Mono',monospace; font-size:14px; font-weight:700; color:var(--gold2); display:inline-block; width:42px; }
+.airport-name { font-size:13px; color:var(--text); }
+.airport-city { font-size:11px; color:var(--text3); margin-top:1px; }
+
+/* PREF CHIPS */
+.pref-chip { background:var(--card2); border:1.5px solid var(--border); border-radius:12px; padding:10px 12px; font-size:12px; font-weight:600; color:var(--text2); cursor:pointer; text-align:center; transition:all .2s; user-select:none; }
+.pref-chip:hover { border-color:var(--border2); color:var(--text); }
+.pref-chip.selected { background:rgba(229,168,60,0.1); border-color:var(--gold2); color:var(--gold2); }
+
+
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-
-<!-- ════════════════════════════════════════════
-     LANDING
-════════════════════════════════════════════ -->
-<div id="v-landing" class="view active">
-  <div class="landing-bg">
-    <nav class="landing-nav">
-      <div class="logo">Aviate Atelier</div>
-      <button class="btn-login-nav" onclick="showView('v-login')">Sign In</button>
-    </nav>
-    <div class="landing-hero">
-      <div class="hero-eyebrow">Private Charter, Reimagined</div>
-      <div class="hero-title">Charter Without<br><em>Complexity.</em></div>
-      <div class="hero-sub">Access a curated network of FAA Part 135 certified operators. Instant quotes, transparent pricing, seamless booking.</div>
-      <button class="btn-primary" onclick="showView('v-signup')">Get Started — It's Free</button>
-      <button class="btn-secondary" onclick="showView('v-login')">I already have an account</button>
-    </div>
-    <div class="landing-stats">
-      <div class="ls-item"><div class="ls-val">339+</div><div class="ls-lbl">Airports</div></div>
-      <div class="ls-item"><div class="ls-val">241</div><div class="ls-lbl">Aircraft Types</div></div>
-      <div class="ls-item"><div class="ls-val">Part 135</div><div class="ls-lbl">Certified Only</div></div>
-    </div>
+<div class="top-nav">
+  <div class="nav-logo">Aviate <span>Atelier</span></div>
+  <div class="nav-divider"></div>
+  <div class="nav-section" id="nav-section-label">Private Charter</div>
+  <div class="nav-spacer"></div>
+  <div class="nav-status" id="nav-status" style="display:none">
+    <div class="nav-status-dot"></div>
+    <span id="nav-user-name">Loading...</span>
   </div>
+  <button id="nav-logout-btn" onclick="logout()" style="display:none;height:32px;padding:0 14px;background:var(--border);border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;color:var(--text3);cursor:pointer;margin-left:12px">Sign Out</button>
 </div>
 
-<!-- ════════════════════════════════════════════
-     LOGIN
-════════════════════════════════════════════ -->
-<div id="v-login" class="view">
-  <div class="auth-wrap">
-    <button class="auth-back" onclick="showView('v-landing')">&#x2190; Back</button>
-    <div class="auth-title">Welcome Back</div>
-    <div class="auth-sub">Sign in to access your charter account and manage your upcoming flights.</div>
-    <div class="field-wrap"><div class="field-label">Email Address</div><input class="field-input" type="email" id="login-email" placeholder="your@email.com"></div>
-    <div class="field-wrap"><div class="field-label">Password</div><input class="field-input" type="password" id="login-pw" placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;"></div>
-    <div style="text-align:right;margin-bottom:24px;"><span style="font-size:12px;color:var(--gold2);cursor:pointer;">Forgot password?</span></div>
-    <button class="btn-primary" onclick="handleLogin()">Sign In</button>
-    <div class="auth-switch">Don't have an account? <span onclick="showView('v-signup')">Create one</span></div>
-  </div>
-</div>
-
-<!-- ════════════════════════════════════════════
-     SIGNUP
-════════════════════════════════════════════ -->
-<div id="v-signup" class="view">
-  <div class="auth-wrap">
-    <button class="auth-back" onclick="showView('v-landing')">&#x2190; Back</button>
-    <div class="auth-title">Create Account</div>
-    <div class="auth-sub">Join Aviate Atelier and access a curated network of Part 135 certified operators.</div>
-    <div class="field-row">
-      <div class="field-wrap"><div class="field-label">First Name</div><input class="field-input" type="text" id="su-first" placeholder="James"></div>
-      <div class="field-wrap"><div class="field-label">Last Name</div><input class="field-input" type="text" id="su-last" placeholder="Whitfield"></div>
-    </div>
-    <div class="field-wrap"><div class="field-label">Email Address</div><input class="field-input" type="email" id="su-email" placeholder="your@email.com"></div>
-    <div class="field-wrap"><div class="field-label">Phone Number</div><input class="field-input" type="tel" id="su-phone" placeholder="+1 (305) 555 0100"></div>
-    <div class="field-wrap"><div class="field-label">Password</div><input class="field-input" type="password" id="su-pw" placeholder="Min. 8 characters"></div>
-    <button class="btn-primary" style="margin-top:8px;" onclick="handleSignup()">Create Account</button>
-    <div class="auth-switch">Already have an account? <span onclick="showView('v-login')">Sign In</span></div>
-  </div>
-</div>
-
-<!-- ════════════════════════════════════════════
-     MAIN APP (after login)
-════════════════════════════════════════════ -->
-<div id="v-app" class="view" style="flex-direction:column;">
-
-  <!-- SEARCH SCREEN -->
-  <div id="app-search" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;">
-    <div class="search-header">
-      <div class="search-header-top">
-        <div><div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:600;">Good morning,</div><div style="font-size:13px;color:var(--text2);margin-top:1px;" id="user-greeting-name">traveller.</div></div>
-        <div class="user-chip"><div class="user-av" id="user-av-initials">JW</div></div>
+<div class="view active" id="view-landing">
+  <div style="min-height:calc(100vh - 60px);display:flex;align-items:center;justify-content:center;padding:48px 24px">
+    <div style="max-width:520px;width:100%;text-align:center">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:#E5A83C;margin-bottom:16px">Private Charter · Reimagined</div>
+      <div style="font-family:'Playfair Display',serif;font-size:44px;font-weight:600;color:#E6EDF3;line-height:1.15;margin-bottom:16px">Your private charter,<br><em style="color:#E5A83C">effortlessly booked</em></div>
+      <div style="font-size:15px;color:#8B949E;line-height:1.7;margin-bottom:40px">Access verified FAA Part 135 operators instantly. Submit one request, receive competitive quotes, fly with confidence.</div>
+      <button onclick="showView('view-client-signup')" style="width:100%;height:56px;border-radius:14px;border:none;background:#58A6FF;color:#080D14;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:800;cursor:pointer;margin-bottom:14px">Create Free Account</button>
+      <div style="font-size:13px;color:#6E7681">
+        Already have an account?
+        <button onclick="showView('view-client-login')" style="background:none;border:none;color:#E5A83C;cursor:pointer;font-size:13px;font-weight:700;padding:0 4px">Sign In</button>
       </div>
-      <div class="search-card">
-        <div class="route-row">
-          <button class="airport-btn" onclick="openAirportModal('from')">
-            <div class="ab-code" id="from-code">OPF</div>
-            <div class="ab-name" id="from-name">Miami Opa Locka</div>
-          </button>
-          <button class="swap-btn" onclick="swapAirports()">&#x21C4;</button>
-          <button class="airport-btn" onclick="openAirportModal('to')">
-            <div class="ab-code" id="to-code">TEB</div>
-            <div class="ab-name" id="to-name">Teterboro</div>
-          </button>
+    </div>
+  </div>
+</div>
+<div class="view" id="view-client-login">
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-title">Client Sign In</div>
+      <div class="login-sub">Access your Aviate Atelier account to manage bookings.</div>
+      <div class="field-group">
+        <div class="field-label">Email Address</div>
+        <input class="field-input" type="email" id="cl-login-email" placeholder="you@email.com">
+      </div>
+      <div class="field-group">
+        <div class="field-label">Password</div>
+        <input class="field-input" type="password" id="cl-login-pass" placeholder="••••••••••" onkeydown="if(event.key==='Enter')clientLogin()">
+      </div>
+      <div class="field-error" id="cl-login-error" style="display:none;margin-bottom:12px"></div>
+      <button class="ob-btn primary" onclick="clientLogin()" id="cl-login-btn">Sign In</button>
+      <div class="login-footer" style="margin-top:16px">
+        New here? <a onclick="showView('view-client-signup')">Create an account</a> · <a onclick="showView('view-landing')">Back to home</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CLIENT SIGNUP ══ -->
+
+<div class="view" id="view-client-signup">
+  <div class="login-wrap">
+    <div class="login-card" style="max-width:500px">
+      <div class="login-title">Create Your Account</div>
+      <div class="login-sub">Join Aviate Atelier and access verified private charter operators instantly.</div>
+      <div class="field-row" style="margin-bottom:16px">
+        <div class="field-group" style="margin-bottom:0">
+          <div class="field-label">First Name <span class="field-required">Required</span></div>
+          <input class="field-input" id="cl-first" placeholder="James">
         </div>
-        <div class="date-pax-row">
-          <button class="dp-btn">
-            <div class="dp-lbl">Date</div>
-            <input id="flight-date" type="date" style="background:transparent;border:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;outline:none;cursor:pointer;width:100%;">
-          </button>
-          <button class="dp-btn" style="cursor:default;">
-            <div class="dp-lbl">Passengers</div>
-            <div style="display:flex;align-items:center;gap:8px;margin-top:1px;">
-              <span onclick="adjPax(-1)" style="width:22px;height:22px;border-radius:6px;background:var(--bg2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;border:1px solid var(--border2);">&#x2212;</span>
-              <span id="pax-count" style="font-size:14px;font-weight:700;">4</span>
-              <span onclick="adjPax(1)" style="width:22px;height:22px;border-radius:6px;background:var(--bg2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;border:1px solid var(--border2);">+</span>
+        <div class="field-group" style="margin-bottom:0">
+          <div class="field-label">Last Name <span class="field-required">Required</span></div>
+          <input class="field-input" id="cl-last" placeholder="Morrison">
+        </div>
+      </div>
+      <div class="field-group">
+        <div class="field-label">Email Address <span class="field-required">Required</span></div>
+        <input class="field-input" type="email" id="cl-email" placeholder="james@company.com">
+      </div>
+      <div class="field-group">
+        <div class="field-label">Phone Number</div>
+        <input class="field-input" type="tel" id="cl-phone" placeholder="+1 (305) 000-0000">
+      </div>
+      <div class="field-group">
+        <div class="field-label">Company (Optional)</div>
+        <input class="field-input" id="cl-company" placeholder="Morrison Capital">
+      </div>
+      <div class="field-group">
+        <div class="field-label">Password <span class="field-required">Required</span></div>
+        <input class="field-input" type="password" id="cl-pass" placeholder="Minimum 8 characters">
+      </div>
+      <div class="field-error" id="cl-signup-error" style="display:none;margin-bottom:12px"></div>
+      <button class="ob-btn primary" onclick="clientSignup()" id="cl-signup-btn">Create Account & Start Booking</button>
+      <div class="login-footer" style="margin-top:16px">
+        Already have an account? <a onclick="showView('view-client-login')">Sign in</a> · <a onclick="showView('view-landing')">Back to home</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ OPERATOR ONBOARDING ══ -->
+
+<div class="view" id="view-client-dashboard">
+  <div style="max-width:860px;margin:0 auto;padding:40px 24px">
+    <div style="font-family:'Playfair Display',serif;font-size:32px;font-weight:600;color:var(--text);margin-bottom:6px">Welcome back, <span id="cl-dash-name" style="color:var(--gold2)">—</span></div>
+    <div style="font-size:14px;color:var(--text2);margin-bottom:32px">Ready to book your next private charter?</div>
+
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:24px;padding:32px;margin-bottom:24px">
+      <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:600;color:var(--text);margin-bottom:4px">Request a Charter Flight</div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:24px">Fill in your details below. Verified operators will compete for your booking.</div>
+
+      <!-- TRIP TYPE -->
+      <div style="display:flex;gap:8px;margin-bottom:20px" id="trip-type-selector">
+        <button onclick="setTripType('oneway')" id="tt-oneway" style="flex:1;height:40px;border-radius:10px;border:1.5px solid var(--gold2);background:rgba(229,168,60,0.1);color:var(--gold2);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer">One Way</button>
+        <button onclick="setTripType('return')" id="tt-return" style="flex:1;height:40px;border-radius:10px;border:1.5px solid var(--border);background:transparent;color:var(--text3);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer">Return</button>
+        <button onclick="setTripType('multistop')" id="tt-multistop" style="flex:1;height:40px;border-radius:10px;border:1.5px solid var(--border);background:transparent;color:var(--text3);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer">Multi-Stop</button>
+      </div>
+
+      <div style="font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--gold2);margin-bottom:12px">&#x2708; Route</div>
+      <div style="display:grid;grid-template-columns:1fr 36px 1fr;gap:10px;align-items:end;margin-bottom:20px">
+        <div style="position:relative">
+          <div class="field-label">Departure Airport <span class="field-required">Required</span></div>
+          <input class="field-input" id="req-from" placeholder="Type city or airport code..." autocomplete="off" oninput="airportSearch(this,'dropdown-from')" onblur="setTimeout(()=>hideDropdown('dropdown-from'),200)">
+          <div id="dropdown-from" class="airport-dropdown" style="display:none"></div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:center;padding-bottom:4px">
+          <div onclick="swapAirports()" title="Swap airports" style="width:32px;height:32px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='var(--gold2)'" onmouseout="this.style.borderColor='var(--border2)'">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="var(--text3)" stroke-width="2"><path d="M1 4h12M10 1l3 3-3 3"/><path d="M13 10H1M4 7l-3 3 3 3"/></svg>
+          </div>
+        </div>
+        <div style="position:relative">
+          <div class="field-label">Destination Airport <span class="field-required">Required</span></div>
+          <input class="field-input" id="req-to" placeholder="Type city or airport code..." autocomplete="off" oninput="airportSearch(this,'dropdown-to')" onblur="setTimeout(()=>hideDropdown('dropdown-to'),200)">
+          <div id="dropdown-to" class="airport-dropdown" style="display:none"></div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:16px">
+        <div class="field-group" style="margin-bottom:0">
+          <div class="field-label">Departure Date <span class="field-required">Required</span></div>
+          <input class="field-input" type="date" id="req-date">
+        </div>
+        <div class="field-group" style="margin-bottom:0">
+          <div class="field-label">Preferred Time</div>
+          <select class="field-select" id="req-time">
+            <option value="">Flexible</option>
+            <option>Early Morning (6-9 AM)</option>
+            <option>Morning (9 AM-12 PM)</option>
+            <option>Afternoon (12-5 PM)</option>
+            <option>Evening (5-9 PM)</option>
+            <option>Late Night (9 PM+)</option>
+          </select>
+        </div>
+        <div class="field-group" style="margin-bottom:0">
+          <div class="field-label">Total Passengers <span class="field-required">Required</span></div>
+          <select class="field-select" id="req-pax">
+            <option value="1">1 Passenger</option>
+            <option value="2">2 Passengers</option>
+            <option value="3">3 Passengers</option>
+            <option value="4" selected>4 Passengers</option>
+            <option value="5">5 Passengers</option>
+            <option value="6">6 Passengers</option>
+            <option value="7">7 Passengers</option>
+            <option value="8">8 Passengers</option>
+            <option value="9">9 Passengers</option>
+            <option value="10">10+ Passengers</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- RETURN DATE (shown when return trip selected) -->
+      <div id="return-date-row" style="display:none;margin-bottom:16px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div class="field-group" style="margin-bottom:0">
+            <div class="field-label">Return Date <span class="field-required">Required</span></div>
+            <input class="field-input" type="date" id="req-return-date">
+          </div>
+          <div class="field-group" style="margin-bottom:0">
+            <div class="field-label">Return Preferred Time</div>
+            <select class="field-select" id="req-return-time">
+              <option value="">Flexible</option>
+              <option>Early Morning (6-9 AM)</option>
+              <option>Morning (9 AM-12 PM)</option>
+              <option>Afternoon (12-5 PM)</option>
+              <option>Evening (5-9 PM)</option>
+              <option>Late Night (9 PM+)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- MULTI-STOP LEGS (shown when multi-stop selected) -->
+      <div id="multistop-row" style="display:none;margin-bottom:16px">
+        <div style="background:var(--bg3);border:1px solid var(--border2);border-radius:14px;padding:16px">
+          <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:12px">Additional Stops</div>
+          <div id="extra-legs">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px" class="extra-leg">
+              <div style="position:relative">
+                <div class="field-label">Stop 2 — From</div>
+                <input class="field-input" id="leg-1-from" placeholder="Type city or airport code..." autocomplete="off" style="font-size:13px" oninput="airportSearch(this,'leg-1-from-drop')" onblur="setTimeout(()=>hideDropdown('leg-1-from-drop'),200)">
+                <div id="leg-1-from-drop" class="airport-dropdown" style="display:none"></div>
+              </div>
+              <div style="position:relative">
+                <div class="field-label">Stop 2 — To</div>
+                <input class="field-input" id="leg-1-to" placeholder="Type city or airport code..." autocomplete="off" style="font-size:13px" oninput="airportSearch(this,'leg-1-to-drop')" onblur="setTimeout(()=>hideDropdown('leg-1-to-drop'),200)">
+                <div id="leg-1-to-drop" class="airport-dropdown" style="display:none"></div>
+              </div>
+              <div>
+                <div class="field-label">Date</div>
+                <input class="field-input" type="date" style="font-size:13px">
+              </div>
             </div>
-          </button>
-        </div>
-        <button class="btn-search" onclick="searchFlights()">Search Available Aircraft &#x2192;</button>
-      </div>
-    </div>
-
-    <!-- Recent / Featured -->
-    <div style="padding:18px 18px 8px;">
-      <div style="font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:12px;">Popular Routes</div>
-      <div style="display:flex;flex-direction:column;gap:8px;">
-        <div onclick="quickRoute('MIA','TEB','Miami Int\'l','Teterboro')" style="background:var(--card2);border:1px solid var(--border2);border-radius:13px;padding:13px 15px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;">
-          <div><div style="font-size:14px;font-weight:700;">MIA &#x2192; TEB</div><div style="font-size:11px;color:var(--text3);margin-top:2px;">Miami to Teterboro &middot; ~2.5 hrs</div></div>
-          <div style="font-size:13px;color:var(--gold2);font-weight:700;">From $18,500</div>
-        </div>
-        <div onclick="quickRoute('VNY','ASE','Van Nuys','Aspen')" style="background:var(--card2);border:1px solid var(--border2);border-radius:13px;padding:13px 15px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;">
-          <div><div style="font-size:14px;font-weight:700;">VNY &#x2192; ASE</div><div style="font-size:11px;color:var(--text3);margin-top:2px;">Van Nuys to Aspen &middot; ~1.5 hrs</div></div>
-          <div style="font-size:13px;color:var(--gold2);font-weight:700;">From $12,200</div>
-        </div>
-        <div onclick="quickRoute('HOU','SJD','Houston Hobby','Los Cabos')" style="background:var(--card2);border:1px solid var(--border2);border-radius:13px;padding:13px 15px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;">
-          <div><div style="font-size:14px;font-weight:700;">HOU &#x2192; SJD</div><div style="font-size:11px;color:var(--text3);margin-top:2px;">Houston to Los Cabos &middot; ~2 hrs</div></div>
-          <div style="font-size:13px;color:var(--gold2);font-weight:700;">From $24,800</div>
+          </div>
+          <button onclick="addLeg()" style="width:100%;height:36px;background:transparent;border:1.5px dashed var(--border2);border-radius:10px;color:var(--text3);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer">+ Add Another Stop</button>
         </div>
       </div>
-    </div>
-    <div style="height:12px;"></div>
-  </div>
 
-  <!-- RESULTS SCREEN -->
-  <div id="app-results" style="display:none;flex:1;overflow-y:auto;flex-direction:column;">
-    <div class="results-header">
-      <button class="rh-back" onclick="showAppScreen('search')">&#x2190; New Search</button>
-      <div class="rh-route" id="results-route">MIA &#x2192; TEB</div>
-      <div class="rh-meta" id="results-meta">Mar 15, 2026 &middot; 4 passengers</div>
-      <div class="rh-status"><span class="rh-status-dot"></span>Requesting quotes from operators...</div>
-    </div>
-    <div class="results-list" id="results-list"></div>
-  </div>
+      <div style="margin-bottom:24px"></div>
 
-  <!-- BOOKING FLOW SCREEN -->
-  <div id="app-booking" style="display:none;flex:1;flex-direction:column;overflow:hidden;">
-    <div class="booking-nav">
-      <button class="bnav-back" onclick="bookingBack()">&#x2190;</button>
-      <div class="bnav-title" id="booking-step-title">Passenger Details</div>
-      <div class="bnav-step" id="booking-step-num">Step 1 of 3</div>
-    </div>
-    <div class="progress-strip"><div class="progress-fill" id="booking-progress" style="width:33%"></div></div>
-    <div class="booking-body" id="booking-body"></div>
-    <div class="booking-footer">
-      <button class="btn-primary" id="booking-next-btn" onclick="bookingNext()">Continue &#x2192;</button>
-    </div>
-  </div>
+      <div style="background:rgba(88,166,255,0.05);border:1px solid rgba(88,166,255,0.18);border-radius:14px;padding:16px;margin-bottom:20px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-size:13px;font-weight:700;color:var(--text)">Passengers Under 18 (Minors)</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:2px">FAA regulations require advance disclosure of minors on board</div>
+          </div>
+          <div onclick="toggleMinors()" style="display:flex;align-items:center;gap:8px;cursor:pointer">
+            <span style="font-size:12px;color:var(--text3)" id="minor-toggle-label">No</span>
+            <div style="position:relative;width:40px;height:22px">
+              <div id="minor-track" style="width:40px;height:22px;border-radius:11px;background:var(--border2);transition:background .2s"></div>
+              <div id="minor-thumb" style="position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:white;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.4)"></div>
+            </div>
+          </div>
+        </div>
+        <div id="minors-fields" style="display:none;margin-top:16px;border-top:1px solid rgba(88,166,255,0.15);padding-top:16px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+            <div>
+              <div class="field-label">Number of Minors</div>
+              <select class="field-select" id="req-minors-count">
+                <option>1</option><option>2</option><option>3</option><option>4</option>
+              </select>
+            </div>
+            <div>
+              <div class="field-label">Accompanied by Adult?</div>
+              <select class="field-select" id="req-minors-accompanied" onchange="checkUnaccompanied()">
+                <option value="yes">Yes — adult traveling with them</option>
+                <option value="no">No — unaccompanied minor(s)</option>
+              </select>
+            </div>
+          </div>
+          <div id="unaccompanied-notice" style="display:none;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.3);border-radius:10px;padding:12px;font-size:11px;color:var(--gold2);line-height:1.7;margin-bottom:12px">
+            &#x26A0;&#xFE0F; <strong>Unaccompanied Minor Protocol:</strong> FAA Part 135 operators require advance written consent from a parent or guardian. You will be contacted by the operator to complete required documentation before the flight is confirmed.
+          </div>
+          <div>
+            <div class="field-label">Ages of Minor Passengers</div>
+            <input class="field-input" id="req-minors-ages" placeholder="e.g. 8, 12, 15">
+          </div>
+        </div>
+      </div>
 
-  <!-- TRIPS SCREEN -->
-  <div id="app-trips" style="display:none;flex:1;overflow-y:auto;flex-direction:column;">
-    <div class="trips-header">
-      <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:600;">My Trips</div>
-      <div class="trips-tabs">
-        <div class="tt-btn active" onclick="filterTrips('upcoming',this)">Upcoming</div>
-        <div class="tt-btn" onclick="filterTrips('pending',this)">Pending Quotes</div>
-        <div class="tt-btn" onclick="filterTrips('completed',this)">Completed</div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--gold2);margin-bottom:12px">&#x2726; Flight Preferences</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px">
+        <div class="pref-chip" id="pref-catering" onclick="togglePref('catering')">&#x1F37D; Catering</div>
+        <div class="pref-chip" id="pref-wifi" onclick="togglePref('wifi')">&#x1F4F6; WiFi Required</div>
+        <div class="pref-chip" id="pref-transport" onclick="togglePref('transport')">&#x1F698; Ground Transport</div>
+        <div class="pref-chip" id="pref-luggage" onclick="togglePref('luggage')">&#x1F9F3; Heavy Luggage</div>
+        <div class="pref-chip" id="pref-pet" onclick="togglePref('pet')">&#x1F43E; Pet On Board</div>
+        <div class="pref-chip" id="pref-wheelchair" onclick="togglePref('wheelchair')">&#x267F; Accessibility</div>
+        <div class="pref-chip" id="pref-standup" onclick="togglePref('standup')">&#x1F6CB; Stand-Up Cabin</div>
+        <div class="pref-chip" id="pref-international" onclick="togglePref('international')">&#x1F30D; International</div>
+      </div>
+
+      <div id="catering-detail" style="display:none;background:var(--bg3);border:1px solid var(--border2);border-radius:14px;padding:16px;margin-bottom:16px">
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:12px">&#x1F37D; Catering Preferences</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div><div class="field-label">Service Level</div><select class="field-select" id="req-catering-level"><option>Light Snacks &amp; Beverages</option><option>Full Meal Service</option><option>Premium Multi-Course</option><option>Custom — specify in notes</option></select></div>
+          <div><div class="field-label">Dietary Requirements</div><select class="field-select" id="req-dietary"><option>None / Standard</option><option>Vegetarian</option><option>Vegan</option><option>Gluten Free</option><option>Halal</option><option>Kosher</option><option>Multiple — specify in notes</option></select></div>
+        </div>
+      </div>
+
+      <div id="transport-detail" style="display:none;background:var(--bg3);border:1px solid var(--border2);border-radius:14px;padding:16px;margin-bottom:16px">
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:12px">&#x1F698; Ground Transportation</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div><div class="field-label">Vehicle Type</div><select class="field-select" id="req-transport-type"><option>Luxury Sedan</option><option>SUV</option><option>Sprinter Van</option><option>Limousine</option><option>No preference</option></select></div>
+          <div><div class="field-label">Pickup Address</div><input class="field-input" id="req-transport-addr" placeholder="Hotel, address or terminal"></div>
+        </div>
+      </div>
+
+      <div id="pet-detail" style="display:none;background:var(--bg3);border:1px solid var(--border2);border-radius:14px;padding:16px;margin-bottom:16px">
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:12px">&#x1F43E; Pet Details</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+          <div><div class="field-label">Animal Type</div><select class="field-select" id="req-pet-type"><option>Dog</option><option>Cat</option><option>Other</option></select></div>
+          <div><div class="field-label">Breed</div><input class="field-input" id="req-pet-breed" placeholder="e.g. Labrador"></div>
+          <div><div class="field-label">Weight (lbs)</div><input class="field-input" id="req-pet-weight" placeholder="e.g. 45"></div>
+        </div>
+      </div>
+
+      <div id="luggage-detail" style="display:none;background:var(--bg3);border:1px solid var(--border2);border-radius:14px;padding:16px;margin-bottom:16px">
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:12px">&#x1F9F3; Luggage Details</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div><div class="field-label">Number of Large Bags</div><select class="field-select" id="req-luggage-count"><option>1-2 bags</option><option>3-5 bags</option><option>6-10 bags</option><option>10+ bags</option></select></div>
+          <div><div class="field-label">Special Items</div><input class="field-input" id="req-luggage-items" placeholder="Golf clubs, ski equipment, surfboards..."></div>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <div class="field-label">Additional Notes (Optional)</div>
+        <textarea id="req-notes" placeholder="Any other details — tail preferences, return trip needed, flexibility on timing..." style="width:100%;min-height:80px;background:var(--card2);border:1.5px solid var(--border);border-radius:12px;padding:14px 16px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);outline:none;resize:vertical;transition:border-color .2s;line-height:1.6" onfocus="this.style.borderColor='var(--gold2)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+      </div>
+
+      <button class="ob-btn primary" style="margin-top:16px" onclick="submitBookingRequest()" id="req-submit-btn">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polygon points="8,1 10.5,6 16,6.8 12,10.7 12.9,16 8,13.5 3.1,16 4,10.7 0,6.8 5.5,6"/></svg>
+        Get Instant Quotes
+      </button>
+    </div>
+
+    <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px">My Requests</div>
+    <div id="cl-requests-list">
+      <div class="empty-state" style="background:var(--card);border:1px solid var(--border);border-radius:16px">
+        <div class="empty-icon"><svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="var(--text3)" stroke-width="1.5"><path d="M4 20L14 6L24 20"/><line x1="4" y1="23" x2="24" y2="23"/></svg></div>
+        <div class="empty-title">No requests yet</div>
+        <div class="empty-sub">Submit your first request above to get quotes from operators.</div>
       </div>
     </div>
-    <div id="trips-list" style="padding:16px;"></div>
-  </div>
-
-  <!-- ACCOUNT SCREEN -->
-  <div id="app-account" style="display:none;flex:1;overflow-y:auto;padding:20px;">
-    <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:600;margin-bottom:20px;">My Account</div>
-    <div style="background:var(--card2);border:1px solid var(--border2);border-radius:18px;padding:20px;margin-bottom:14px;text-align:center;">
-      <div style="width:64px;height:64px;border-radius:18px;background:rgba(229,168,60,0.12);border:2px solid rgba(229,168,60,0.3);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:var(--gold2);margin:0 auto 12px;" id="acct-avatar">JW</div>
-      <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:600;" id="acct-name">James Whitfield</div>
-      <div style="font-size:13px;color:var(--text2);margin-top:3px;" id="acct-email">james@email.com</div>
-    </div>
-    <div style="background:var(--card2);border:1px solid var(--border2);border-radius:16px;overflow:hidden;margin-bottom:14px;">
-      <div onclick="" style="display:flex;align-items:center;justify-content:space-between;padding:15px 17px;border-bottom:1px solid var(--border);cursor:pointer;"><span style="font-size:14px;font-weight:600;">Edit Profile</span><span style="color:var(--text3);">&#x276F;</span></div>
-      <div onclick="" style="display:flex;align-items:center;justify-content:space-between;padding:15px 17px;border-bottom:1px solid var(--border);cursor:pointer;"><span style="font-size:14px;font-weight:600;">Payment Methods</span><span style="color:var(--text3);">&#x276F;</span></div>
-      <div onclick="" style="display:flex;align-items:center;justify-content:space-between;padding:15px 17px;cursor:pointer;"><span style="font-size:14px;font-weight:600;">Notification Preferences</span><span style="color:var(--text3);">&#x276F;</span></div>
-    </div>
-    <button onclick="handleLogout()" style="width:100%;height:46px;border-radius:13px;border:1px solid rgba(255,94,94,0.25);background:rgba(255,94,94,0.05);color:var(--red);font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Sign Out</button>
-  </div>
-
-  <!-- BOTTOM NAV -->
-  <div class="bottom-nav" id="app-bottom-nav">
-    <div class="bn-i active" onclick="switchAppTab('search',this)"><div class="bn-ic">&#x1F50D;</div><div class="bn-lb">Search</div></div>
-    <div class="bn-i" onclick="switchAppTab('trips',this)"><div class="bn-ic">&#x2708;</div><div class="bn-lb">My Trips</div></div>
-    <div class="bn-i" onclick="switchAppTab('account',this)"><div class="bn-ic">&#x1F464;</div><div class="bn-lb">Account</div></div>
   </div>
 </div>
 
-<!-- AIRPORT MODAL -->
-<div class="modal-overlay" id="airport-modal">
-  <button class="modal-back" onclick="closeAirportModal()">&#x2190; Back</button>
-  <div style="font-size:18px;font-weight:700;margin-bottom:14px;" id="airport-modal-title">From Airport</div>
-  <input class="airport-search-inp" id="airport-search-inp" placeholder="Search by city, airport or code..." oninput="searchAirports(this.value)" autofocus>
-  <div class="airport-results" id="airport-results"></div>
+
+<!-- MANIFEST MODAL -->
+<div class="modal-overlay" id="manifest-modal" style="align-items:flex-start;padding:20px;overflow-y:auto">
+  <div class="modal" style="width:620px;max-height:90vh;overflow-y:auto;margin:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <div class="modal-title">Passenger Manifest</div>
+      <div style="font-size:11px;color:var(--text3);background:var(--bg3);border:1px solid var(--border);padding:4px 10px;border-radius:8px">FAA Required</div>
+    </div>
+    <div class="modal-sub" id="manifest-sub">Complete details for all passengers. Required by FAA Part 135 regulations before flight confirmation.</div>
+
+    <!-- PASSENGER TABS -->
+    <div id="manifest-pax-tabs" style="display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap"></div>
+
+    <!-- PASSENGER FORMS -->
+    <div id="manifest-pax-forms"></div>
+
+    <!-- INTERNATIONAL NOTICE -->
+    <div id="intl-notice" style="display:none;background:rgba(88,166,255,0.06);border:1px solid rgba(88,166,255,0.2);border-radius:12px;padding:14px;margin-bottom:16px">
+      <div style="font-size:12px;font-weight:700;color:#58A6FF;margin-bottom:4px">🌍 International Flight — Passport Required</div>
+      <div style="font-size:11px;color:var(--text2);line-height:1.6">Passport details are mandatory for all international flights. Ensure all passports are valid for at least 6 months beyond the travel date.</div>
+    </div>
+
+    <div class="modal-btns" style="margin-top:8px">
+      <button class="modal-cancel" onclick="closeManifest()">Cancel</button>
+      <button class="modal-submit" id="manifest-submit-btn" onclick="submitManifest()" style="background:linear-gradient(135deg,var(--gold),var(--gold2))">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M2 8l4 4 8-8"/></svg>
+        Confirm Booking & Submit Manifest
+      </button>
+    </div>
+  </div>
 </div>
 
-<!-- TOAST -->
-<div class="toast" id="toast"><span id="toast-ico">&#x2713;</span><div><div id="toast-msg" style="font-size:13px;font-weight:700;"></div><div id="toast-sub" style="font-size:11px;color:var(--text3);margin-top:1px;"></div></div></div>
+
+<div class="toast" id="toast">
+  <div class="toast-icon-wrap" id="toast-icon-wrap">
+    <svg id="toast-icon" width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--green2)" stroke-width="2"><path d="M3 9l5 5 7-8"/></svg>
+  </div>
+  <div><div class="toast-title" id="toast-title">Done</div><div class="toast-sub" id="toast-sub"></div></div>
+</div>
 
 <script>
-// ── SUPABASE CLIENT ──
-const _sb = supabase.createClient(
-  'https://hkjldgjvxgrutnqzwfql.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhramxkZ2p2eGdydXRucXp3ZnFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwNDMwOTYsImV4cCI6MjA4NzYxOTA5Nn0.aNICtFHRMeP5Xu9ssgLlziC6cbR6-WXcTCbM1UY1q3g'
-);
-var _user = null;
+const _sb = supabase.createClient('https://hkjldgjvxgrutnqzwfql.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhramxkZ2p2eGdydXRucXp3ZnFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwNDMwOTYsImV4cCI6MjA4NzYxOTA5Nn0.aNICtFHRMeP5Xu9ssgLlziC6cbR6-WXcTCbM1UY1q3g');
 var _clientRecord = null;
-
-// Check if already logged in on load
-(async function checkSession() {
-  const { data: { session } } = await _sb.auth.getSession();
-  if (session) {
-    const { data: client } = await _sb.from('clients').select('*').eq('user_id', session.user.id).single();
-    if (client) {
-      _user = { firstName: client.first_name, lastName: client.last_name, email: client.email, initials: (client.first_name[0] + client.last_name[0]).toUpperCase() };
-      _clientRecord = client;
-      enterApp();
+(async function() {
+  try {
+    const { data: { session } } = await _sb.auth.getSession();
+    if (session) {
+      const { data: c } = await _sb.from('clients').select('*').eq('user_id', session.user.id).single();
+      if (c) { _clientRecord = c; loadClientDashboard(c); }
     }
-  }
+  } catch(e) { console.warn('Session:', e); }
 })();
 
-// ── AIRPORTS (sample — full list will be injected from worldwide_airports.js) ──
-var AIRPORTS = [
-  {code:'OPF',name:'Miami Opa Locka Executive',city:'Miami, FL'},{code:'MIA',name:'Miami International',city:'Miami, FL'},
-  {code:'TEB',name:'Teterboro Airport',city:'Teterboro, NJ'},{code:'JFK',name:'John F. Kennedy Intl',city:'New York, NY'},
-  {code:'KLAX',name:'Los Angeles International',city:'Los Angeles, CA'},{code:'VNY',name:'Van Nuys Airport',city:'Los Angeles, CA'},
-  {code:'ASE',name:'Aspen/Pitkin County',city:'Aspen, CO'},{code:'DEN',name:'Denver International',city:'Denver, CO'},
-  {code:'HOU',name:'William P. Hobby',city:'Houston, TX'},{code:'SJD',name:'Los Cabos International',city:'Los Cabos, MX'},
-  {code:'LAX',name:'Los Angeles International',city:'Los Angeles, CA'},{code:'ORD',name:'O\'Hare International',city:'Chicago, IL'},
-  {code:'ATL',name:'Hartsfield-Jackson',city:'Atlanta, GA'},{code:'LAS',name:'Harry Reid International',city:'Las Vegas, NV'},
-  {code:'SFO',name:'San Francisco International',city:'San Francisco, CA'},{code:'BOS',name:'Logan International',city:'Boston, MA'},
-  {code:'MCO',name:'Orlando International',city:'Orlando, FL'},{code:'DFW',name:'Dallas/Fort Worth Intl',city:'Dallas, TX'},
-  {code:'KDAL',name:'Love Field',city:'Dallas, TX'},{code:'SDC',name:'Sheridan County',city:'Sheridan, WY'},
-  {code:'ADS',name:'Addison Airport',city:'Dallas, TX'},{code:'PDK',name:'DeKalb-Peachtree',city:'Atlanta, GA'},
-  {code:'SMF',name:'Sacramento International',city:'Sacramento, CA'},{code:'SNA',name:'John Wayne Airport',city:'Orange County, CA'},
-];
 
-// ── MOCK QUOTES ──
-var MOCK_QUOTES = [
-  {operator:'Apex Air Charter',aircraft:'Gulfstream G550',tail:'N481SP',price:28500,pax:8,speed:500,range:'3,500 nm',flightTime:'2h 40m',cat:'heavy'},
-  {operator:'Summit Jets',aircraft:'Bombardier Challenger 350',tail:'N720SJ',price:18200,pax:8,speed:470,range:'3,200 nm',flightTime:'2h 55m',cat:'super-midsize'},
-  {operator:'Meridian Air',aircraft:'Gulfstream G450',tail:'N450MA',price:22800,pax:7,speed:490,range:'4,000 nm',flightTime:'2h 45m',cat:'heavy'},
-  {operator:'Coastal Charter',aircraft:'Embraer Legacy 600',tail:'N600CC',price:16400,pax:7,speed:450,range:'3,200 nm',flightTime:'3h 05m',cat:'large'},
-];
+// ══════════════════════════════════
+// SUPABASE CONFIG
+// ══════════════════════════════════
+const SUPABASE_URL = 'https://hkjldgjvxgrutnqzwfql.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhramxkZ2p2eGdydXRucXp3ZnFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwNDMwOTYsImV4cCI6MjA4NzYxOTA5Nn0.aNICtFHRMeP5Xu9ssgLlziC6cbR6-WXcTCbM1UY1q3g';
 
-// ── MOCK TRIPS ──
-var MOCK_TRIPS = {
-  upcoming: [
-    {route:'OPF &#x2192; TEB',aircraft:'Gulfstream G550',date:'Mar 15, 2026',pax:4,price:'$28,500',status:'upcoming'},
-    {route:'ADS &#x2192; SJD',aircraft:'Challenger 350',date:'Mar 28, 2026',pax:6,price:'$19,200',status:'upcoming'},
-  ],
-  pending: [
-    {route:'VNY &#x2192; ASE',aircraft:'Awaiting quotes',date:'Apr 3, 2026',pax:3,price:'—',status:'pending'},
-  ],
-  completed: [
-    {route:'MIA &#x2192; TEB',aircraft:'G450',date:'Feb 10, 2026',pax:5,price:'$22,800',status:'completed'},
-    {route:'HOU &#x2192; SJD',aircraft:'Legacy 600',date:'Jan 28, 2026',pax:4,price:'$16,400',status:'completed'},
-  ]
+// Simple Supabase client
+const sb = {
+  async query(method, table, body = null, params = '') {
+    const url = `${SUPABASE_URL}/rest/v1/${table}${params}`;
+    const headers = {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': method === 'POST' ? 'return=representation' : ''
+    };
+    const res = await fetch(url, { method, headers, body: body ? JSON.stringify(body) : null });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || err.hint || 'Database error');
+    }
+    return method === 'DELETE' ? null : res.json();
+  },
+  async insert(table, data) { return this.query('POST', table, data); },
+  async select(table, params = '') { return this.query('GET', table, null, params); },
+  async update(table, data, params) { return this.query('PATCH', table, data, params); },
 };
 
-// ─── STATE ───
-var _fromAirport = {code:'OPF', name:'Miami Opa Locka'};
-var _toAirport   = {code:'TEB', name:'Teterboro'};
-var _passengers  = 4;
-var _modalTarget = 'from';
-var _bookingStep = 1;
-var _selectedQuote = null;
-var _passengerForms = [];
+// Auth via Supabase Auth API
+const auth = {
+  async signUp(email, password, metadata = {}) {
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, data: metadata })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message || data.msg);
+    return data;
+  },
+  async signIn(email, password) {
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message || data.error_description || 'Sign in failed');
+    return data;
+  },
+  save(session) { localStorage.setItem('aa_session', JSON.stringify(session)); },
+  load() { try { return JSON.parse(localStorage.getItem('aa_session')); } catch { return null; } },
+  clear() { localStorage.removeItem('aa_session'); localStorage.removeItem('aa_operator'); localStorage.removeItem('aa_client'); }
+};
 
-// ── NAVIGATION ──
+// ══ STATE ══
+let currentStep = 0;
+let selectedRole = 'owner';
+let checks = { c1: false, c2: false, c3: false, c4: false };
+let osaScrolled = false;
+let activeReqId = null;
+let activeReqData = null;
+let quoteCount = 0;
+let settleTotal = 0;
+let currentOperator = null;
+let currentClient = null;
+let toastTimer;
+
+// ══ INIT ══
+// Top-level init (safe - no DOM access)
+// DOM-dependent init is in DOMContentLoaded below
+
+// ══ VIEWS ══
 function showView(id) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  const labels = {
+    'view-landing': 'Private Charter Marketplace',
+    'view-operator-onboard': 'Operator Onboarding',
+    'view-operator-login': 'Operator Sign In',
+    'view-client-login': 'Client Sign In',
+    'view-client-signup': 'Create Account',
+    'view-dashboard': 'Operator Dashboard',
+    'view-client-dashboard': 'Client Portal'
+  };
+  document.getElementById('nav-section-label').textContent = labels[id] || 'Aviate Atelier';
 }
-function showAppScreen(name) {
-  var screens = ['search','results','booking','trips','account'];
-  screens.forEach(function(s) {
-    var el = document.getElementById('app-' + s);
-    if (el) el.style.display = (s === name) ? (s === 'booking' ? 'flex' : 'flex') : 'none';
+
+// ══ ONBOARDING STEPS ══
+function goStep(n) {
+  // Validate step 0 before moving on
+  if (n > 0 && currentStep === 0) {
+    const company = document.getElementById('f-company').value.trim();
+    const ein = document.getElementById('f-ein').value.trim();
+    const email = document.getElementById('f-email').value.trim();
+    const pass = document.getElementById('f-password').value.trim();
+    const err = document.getElementById('step0-error');
+    if (!company || !ein || !email || !pass) {
+      err.textContent = 'Please fill in all required fields before continuing.';
+      err.classList.add('show'); return;
+    }
+    if (pass.length < 8) {
+      err.textContent = 'Password must be at least 8 characters.';
+      err.classList.add('show'); return;
+    }
+    err.classList.remove('show');
+  }
+  document.querySelectorAll('.ob-step').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.step-item').forEach((s, i) => {
+    s.classList.remove('active', 'done');
+    if (i < n) s.classList.add('done');
+    if (i === n) s.classList.add('active');
   });
-  // Show/hide bottom nav
-  var nav = document.getElementById('app-bottom-nav');
-  nav.style.display = (name === 'booking') ? 'none' : 'flex';
-}
-function switchAppTab(name, el) {
-  document.querySelectorAll('.bn-i').forEach(b => b.classList.remove('active'));
-  if (el) el.classList.add('active');
-  showAppScreen(name);
-  if (name === 'trips') loadTrips('upcoming');
+  document.getElementById('step-' + n).classList.add('active');
+  currentStep = n;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// ── AUTH ──
-async function handleLogin() {
-  var email = document.getElementById('login-email').value.trim();
-  var pw    = document.getElementById('login-pw').value;
-  if (!email || !pw) { showToast('⚠','Required fields missing','Please enter email and password'); return; }
-  showToast('⌛','Signing in...','');
-  const { data, error } = await _sb.auth.signInWithPassword({ email, password: pw });
-  if (error) { showToast('⚠','Sign in failed', error.message); return; }
-  const { data: client } = await _sb.from('clients').select('*').eq('user_id', data.user.id).single();
-  if (!client) { showToast('⚠','Account not found','No client account linked to this email'); return; }
-  _user = { firstName: client.first_name, lastName: client.last_name, email: client.email, initials: (client.first_name[0] + client.last_name[0]).toUpperCase() };
-  _clientRecord = client;
-  enterApp();
-}
-async function handleSignup() {
-  var first = document.getElementById('su-first').value.trim();
-  var last  = document.getElementById('su-last').value.trim();
-  var email = document.getElementById('su-email').value.trim();
-  var phone = document.getElementById('su-phone').value.trim();
-  var pw    = document.getElementById('su-pw').value;
-  if (!first || !email || !pw) { showToast('⚠','Required fields missing','Fill in all required fields'); return; }
-  if (pw.length < 8) { showToast('⚠','Password too short','Minimum 8 characters'); return; }
-  showToast('⌛','Creating account...','');
-  const { data, error } = await _sb.auth.signUp({ email, password: pw });
-  if (error) { showToast('⚠','Sign up failed', error.message); return; }
-  // Insert into clients table
-  const { data: client, error: clientError } = await _sb.from('clients').insert({
-    user_id: data.user.id,
-    first_name: first,
-    last_name: last || '',
-    email: email,
-    phone: phone || null,
-  }).select().single();
-  if (clientError) { showToast('⚠','Profile error', clientError.message); return; }
-  _user = { firstName: first, lastName: last, email: email, initials: (first[0] + (last ? last[0] : '')).toUpperCase() };
-  _clientRecord = client;
-  showToast('✓','Account created!','Welcome to Aviate Atelier');
-  enterApp();
-}
-function enterApp() {
-  document.getElementById('user-greeting-name').textContent = _user.firstName + '.';
-  document.getElementById('user-av-initials').textContent = _user.initials;
-  document.getElementById('acct-avatar').textContent = _user.initials;
-  document.getElementById('acct-name').textContent = _user.firstName + ' ' + _user.lastName;
-  document.getElementById('acct-email').textContent = _user.email;
-  showView('v-app');
-  showAppScreen('search');
-  // Set default date to tomorrow
-  var d = new Date(); d.setDate(d.getDate() + 1);
-  document.getElementById('flight-date').value = d.toISOString().split('T')[0];
-}
-async function handleLogout() {
-  await _sb.auth.signOut();
-  _user = null;
-  _clientRecord = null;
-  showView('v-landing');
-}
-
-// ── AIRPORT SEARCH ──
-function openAirportModal(target) {
-  _modalTarget = target;
-  document.getElementById('airport-modal-title').textContent = target === 'from' ? 'Departure Airport' : 'Destination Airport';
-  document.getElementById('airport-search-inp').value = '';
-  renderAirportResults(AIRPORTS.slice(0, 12));
-  document.getElementById('airport-modal').classList.add('open');
-  setTimeout(function(){ document.getElementById('airport-search-inp').focus(); }, 100);
-}
-function closeAirportModal() {
-  document.getElementById('airport-modal').classList.remove('open');
-}
-function searchAirports(q) {
-  if (!q) { renderAirportResults(AIRPORTS.slice(0,12)); return; }
-  q = q.toLowerCase();
-  var res = AIRPORTS.filter(function(a){
-    return a.code.toLowerCase().indexOf(q) >= 0 || a.name.toLowerCase().indexOf(q) >= 0 || a.city.toLowerCase().indexOf(q) >= 0;
-  }).slice(0,12);
-  renderAirportResults(res);
-}
-function renderAirportResults(airports) {
-  var html = '';
-  for (var i=0; i < airports.length; i++) {
-    var a = airports[i];
-    html += '<div class="ar-item" onclick="selectAirport(\'' + a.code + "','" + a.name + "','" + a.city + '\')">' +
-      '<div class="ar-code">' + a.code + '</div>' +
-      '<div class="ar-info"><div class="ar-name">' + a.name + '</div><div class="ar-city">' + a.city + '</div></div>' +
-    '</div>';
+function markUploaded(id, type) {
+  const el = document.getElementById(id);
+  if (!el.classList.contains('done')) {
+    el.classList.add('done');
+    el.innerHTML = `<div class="upload-icon">✅</div><div class="upload-title">${type === 'argus' ? 'ARGUS Certificate' : 'Wyvern Certificate'} Uploaded</div><div class="upload-done-badge">✓ File received</div>`;
   }
-  document.getElementById('airport-results').innerHTML = html || '<div style="text-align:center;padding:30px;color:var(--text3);">No airports found</div>';
-}
-function selectAirport(code, name, city) {
-  if (_modalTarget === 'from') {
-    _fromAirport = {code:code, name:name};
-    document.getElementById('from-code').textContent = code;
-    document.getElementById('from-name').textContent = name;
-  } else {
-    _toAirport = {code:code, name:name};
-    document.getElementById('to-code').textContent = code;
-    document.getElementById('to-name').textContent = name;
-  }
-  closeAirportModal();
-}
-function swapAirports() {
-  var tmp = _fromAirport;
-  _fromAirport = _toAirport;
-  _toAirport = tmp;
-  document.getElementById('from-code').textContent = _fromAirport.code;
-  document.getElementById('from-name').textContent = _fromAirport.name;
-  document.getElementById('to-code').textContent = _toAirport.code;
-  document.getElementById('to-name').textContent = _toAirport.name;
-}
-function adjPax(d) {
-  _passengers = Math.max(1, Math.min(14, _passengers + d));
-  document.getElementById('pax-count').textContent = _passengers;
-}
-function quickRoute(fc, tc, fn, tn) {
-  _fromAirport = {code:fc, name:fn};
-  _toAirport   = {code:tc, name:tn};
-  document.getElementById('from-code').textContent = fc;
-  document.getElementById('from-name').textContent = fn;
-  document.getElementById('to-code').textContent = tc;
-  document.getElementById('to-name').textContent = tn;
-  searchFlights();
 }
 
-// ── SEARCH & RESULTS ──
-function searchFlights() {
-  var date = document.getElementById('flight-date').value;
-  if (!date) { showToast('&#x26A0;','Select a date','Please choose a departure date'); return; }
-  document.getElementById('results-route').innerHTML = _fromAirport.code + ' &#x2192; ' + _toAirport.code;
-  var d = new Date(date);
-  var opts = {year:'numeric',month:'short',day:'numeric'};
-  document.getElementById('results-meta').textContent = d.toLocaleDateString('en-US',opts) + ' \u00b7 ' + _passengers + ' passenger' + (_passengers>1?'s':'');
-  showAppScreen('results');
-  document.getElementById('results-list').innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);"><div style="font-size:28px;margin-bottom:8px;">&#x231B;</div>Requesting quotes from operators...</div>';
-  // Save booking request to Supabase if logged in
-  if (_clientRecord) {
-    _sb.from('booking_requests').insert({
-      client_id: _clientRecord.id,
-      from_airport: _fromAirport.code,
-      from_city: _fromAirport.name,
-      to_airport: _toAirport.code,
-      to_city: _toAirport.name,
+function addAircraft() {
+  const n = document.querySelectorAll('#fleet-list > div').length + 1;
+  const div = document.createElement('div');
+  div.style.cssText = 'background:var(--card);border:1.5px solid var(--border2);border-radius:16px;padding:18px;margin-bottom:12px';
+  div.innerHTML = `<div style="font-size:12px;font-weight:700;color:var(--gold2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:14px">Aircraft #${n}</div>
+    <div class="field-row" style="margin-bottom:12px">
+      <div class="field-group"><div class="field-label">Tail Number</div><input class="field-input fleet-tail" placeholder="N0000" style="font-family:'DM Mono',monospace;font-size:16px"></div>
+      <div class="field-group"><div class="field-label">Aircraft Type</div><select class="field-select fleet-type"><option>Citation CJ3+</option><option>Phenom 300E</option><option>Hawker 800XP</option><option>Gulfstream G450</option><option>Other</option></select></div>
+    </div>
+    <div class="field-row-3">
+      <div class="field-group"><div class="field-label">Year</div><input class="field-input fleet-year" placeholder="2021"></div>
+      <div class="field-group"><div class="field-label">Max Pax</div><input class="field-input fleet-pax" placeholder="6"></div>
+      <div class="field-group"><div class="field-label">Home FBO</div><input class="field-input fleet-fbo" placeholder="OPF"></div>
+    </div>`;
+  document.getElementById('fleet-list').appendChild(div);
+}
+
+function selectRole(r) {
+  selectedRole = r;
+  ['owner', 'ops'].forEach(k => document.getElementById('role-' + k).classList.remove('selected'));
+  document.getElementById('role-' + r).classList.add('selected');
+}
+
+// ══ OSA ══
+function checkScroll() {
+  const el = document.getElementById('osa-scroll');
+  if (!osaScrolled && el.scrollTop + el.clientHeight >= el.scrollHeight - 30) {
+    osaScrolled = true;
+    document.getElementById('scroll-prompt').style.display = 'none';
+    document.getElementById('agreement-checks').style.opacity = '1';
+  }
+}
+
+function toggleCheck(id) {
+  if (!osaScrolled) { document.getElementById('osa-scroll').scrollBy({ top: 200, behavior: 'smooth' }); return; }
+  checks[id] = !checks[id];
+  document.getElementById(id).classList.toggle('checked', checks[id]);
+  checkSigReady();
+}
+
+function checkSigReady() {
+  const allChecked = Object.values(checks).every(Boolean);
+  const hasSig = (document.getElementById('sig-name').value || '').trim().length > 2;
+  document.getElementById('sign-btn').disabled = !(allChecked && hasSig);
+}
+
+// ══ EXECUTE AGREEMENT — SAVE TO SUPABASE ══
+async function executeAgreement() {
+  const btn = document.getElementById('sign-btn');
+  btn.classList.add('loading');
+  btn.textContent = 'Creating your account...';
+
+  const email = document.getElementById('f-email').value.trim();
+  const password = document.getElementById('f-password').value.trim();
+  const company = document.getElementById('f-company').value.trim();
+
+  try {
+    // 1. Create auth account
+    const authData = await auth.signUp(email, password, { company_name: company });
+    auth.save(authData);
+
+    // 2. Save operator record to database
+    const operatorData = {
+      company_name: company,
+      trading_name: document.getElementById('f-trading').value.trim() || company,
+      ein: document.getElementById('f-ein').value.trim(),
+      faa_cert: document.getElementById('f-cert').value.trim(),
+      argus_rating: document.getElementById('f-argus').value,
+      isbao_stage: document.getElementById('f-isbao').value,
+      insurance_level: document.getElementById('f-insurance').value,
+      state: document.getElementById('f-state').value,
+      home_fbo: document.getElementById('f-fbo').value.trim(),
+      address: document.getElementById('f-address').value.trim(),
+      city: document.getElementById('f-city').value.trim(),
+      zip: document.getElementById('f-zip').value.trim(),
+      owner_name: document.getElementById('f-owner-name').value.trim(),
+      owner_title: document.getElementById('f-owner-title').value.trim(),
+      email: email,
+      role: selectedRole,
+      status: 'pending_verification',
+      osa_signed: true,
+      osa_signed_at: new Date().toISOString()
+    };
+
+    const [savedOperator] = await sb.insert('operators', operatorData);
+    currentOperator = savedOperator;
+    localStorage.setItem('aa_operator', JSON.stringify(savedOperator));
+
+    // 3. Save fleet
+    const fleetCards = document.querySelectorAll('#fleet-list > div');
+    for (const card of fleetCards) {
+      const tail = card.querySelector('.fleet-tail')?.value?.trim();
+      const type = card.querySelector('.fleet-type')?.value;
+      if (tail && type) {
+        await sb.insert('fleet', {
+          operator_id: savedOperator.id,
+          tail_number: tail,
+          aircraft_type: type,
+          year: parseInt(card.querySelector('.fleet-year')?.value) || null,
+          max_passengers: parseInt(card.querySelector('.fleet-pax')?.value) || null,
+          home_fbo: card.querySelector('.fleet-fbo')?.value?.trim() || null,
+          status: 'available'
+        });
+      }
+    }
+
+    document.getElementById('success-company').textContent = company;
+    goStep(5);
+    showToast('success', '✓', 'Account created', 'Your operator profile is saved to the database.');
+
+  } catch (err) {
+    btn.classList.remove('loading');
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M2 8l4 4 8-8"/></svg> Execute Agreement & Activate Account';
+    showToast('error', '✕', 'Account creation failed', err.message);
+  }
+}
+
+function goToDashboard() {
+  if (currentOperator) loadDashboard(currentOperator);
+}
+
+// ══ OPERATOR LOGIN ══
+async function operatorLogin() {
+  const email = document.getElementById('op-login-email').value.trim();
+  const pass = document.getElementById('op-login-pass').value.trim();
+  const errEl = document.getElementById('op-login-error');
+  const btn = document.getElementById('op-login-btn');
+
+  if (!email || !pass) { errEl.textContent = 'Please enter your email and password.'; errEl.style.display = 'block'; return; }
+
+  btn.classList.add('loading'); btn.textContent = 'Signing in...';
+  errEl.style.display = 'none';
+
+  try {
+    const session = await auth.signIn(email, pass);
+    auth.save(session);
+
+    const operators = await sb.select('operators', `?email=eq.${encodeURIComponent(email)}`);
+    if (!operators || operators.length === 0) throw new Error('No operator account found for this email.');
+
+    currentOperator = operators[0];
+    localStorage.setItem('aa_operator', JSON.stringify(currentOperator));
+    loadDashboard(currentOperator);
+    showToast('success', '✓', 'Welcome back', currentOperator.company_name);
+
+  } catch (err) {
+    btn.classList.remove('loading'); btn.textContent = 'Sign In to Dashboard';
+    errEl.textContent = err.message; errEl.style.display = 'block';
+  }
+}
+
+// ══ CLIENT SIGNUP ══
+async function clientSignup() {
+  const first = document.getElementById('cl-first').value.trim();
+  const last = document.getElementById('cl-last').value.trim();
+  const email = document.getElementById('cl-email').value.trim();
+  const phone = document.getElementById('cl-phone').value.trim();
+  const company = document.getElementById('cl-company').value.trim();
+  const pass = document.getElementById('cl-pass').value.trim();
+  const errEl = document.getElementById('cl-signup-error');
+  if (!first || !last || !email || !pass) { errEl.textContent = 'Please fill in all required fields.'; errEl.style.display = 'block'; return; }
+  if (pass.length < 8) { errEl.textContent = 'Password must be at least 8 characters.'; errEl.style.display = 'block'; return; }
+  try {
+    const { data, error } = await _sb.auth.signUp({ email, password: pass });
+    if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
+    const { data: client, error: ce } = await _sb.from('clients').insert({
+      user_id: data.user.id, first_name: first, last_name: last, email, phone: phone||null, company: company||null
+    }).select().single();
+    if (ce) { errEl.textContent = ce.message; errEl.style.display = 'block'; return; }
+    _clientRecord = client;
+    loadClientDashboard(client);
+  } catch(e) { errEl.textContent = e.message; errEl.style.display = 'block'; }
+}
+
+// ══ CLIENT LOGIN ══
+async function clientLogin() {
+  const email = document.getElementById('cl-login-email').value.trim();
+  const pass = document.getElementById('cl-login-pass').value.trim();
+  const errEl = document.getElementById('cl-login-error');
+  const btn = document.getElementById('cl-login-btn');
+  if (!email || !pass) { errEl.textContent = 'Please enter your email and password.'; errEl.style.display = 'block'; return; }
+  if (btn) { btn.textContent = 'Signing in...'; btn.disabled = true; }
+  try {
+    const { data, error } = await _sb.auth.signInWithPassword({ email, password: pass });
+    if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; if(btn){btn.textContent='Sign In';btn.disabled=false;} return; }
+    const { data: client } = await _sb.from('clients').select('*').eq('user_id', data.user.id).single();
+    if (!client) { errEl.textContent = 'No account found for this email.'; errEl.style.display = 'block'; return; }
+    _clientRecord = client;
+    loadClientDashboard(client);
+  } catch(e) { errEl.textContent = e.message; errEl.style.display = 'block'; if(btn){btn.textContent='Sign In';btn.disabled=false;} }
+}
+
+// ══ LOAD OPERATOR DASHBOARD ══
+function loadDashboard(operator) {
+  document.getElementById('db-company-name').textContent = operator.company_name;
+  document.getElementById('db-cert-badge').textContent = '🛡 ' + (operator.argus_rating || 'ARGUS');
+  document.getElementById('db-role-badge').textContent = operator.role === 'owner' ? '👑 Owner' : '🎧 Dispatcher';
+  document.getElementById('db-owner-name').textContent = operator.owner_name || operator.email;
+  document.getElementById('nav-status').style.display = 'flex';
+  document.getElementById('nav-user-name').textContent = operator.company_name;
+  document.getElementById('nav-logout-btn').style.display = 'block';
+  showView('view-dashboard');
+  loadRequests();
+  loadFleet(operator.id);
+}
+
+// ══ LOAD CLIENT DASHBOARD ══
+function loadClientDashboard(client) {
+  const dashName = document.getElementById('cl-dash-name');
+  const navStatus = document.getElementById('nav-status');
+  const navUserName = document.getElementById('nav-user-name');
+  const navLogout = document.getElementById('nav-logout-btn');
+  if (dashName) dashName.textContent = client.first_name;
+  if (navStatus) navStatus.style.display = 'flex';
+  if (navUserName) navUserName.textContent = (client.first_name || '') + ' ' + (client.last_name || '');
+  if (navLogout) navLogout.style.display = 'block';
+  document.getElementById('nav-logout-btn').style.display = 'block';
+  showView('view-client-dashboard');
+  loadClientRequests(client.id);
+}
+
+// ══ LOAD REQUESTS (from Supabase) ══
+async function loadRequests() {
+  try {
+    const requests = await sb.select('booking_requests', '?status=eq.open&order=created_at.desc');
+    const list = document.getElementById('requests-list');
+    document.getElementById('d-stat-req').textContent = requests.length;
+
+    if (!requests.length) {
+      list.innerHTML = `<div class="empty-state"><div class="empty-icon"><svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="var(--text3)" stroke-width="1.5"><path d="M4 20L14 6L24 20"/><line x1="4" y1="23" x2="24" y2="23"/></svg></div><div class="empty-title">No requests yet</div><div class="empty-sub">Client booking requests will appear here in real time.</div></div>`;
+      return;
+    }
+
+    const badge = document.getElementById('sb-badge');
+    badge.textContent = requests.length; badge.style.display = 'block';
+
+    list.innerHTML = '';
+    requests.forEach(r => {
+      const card = document.createElement('div');
+      card.className = 'req-card new-req';
+      card.id = 'rc-' + r.id;
+      card.innerHTML = `
+        <div class="req-top">
+          <div>
+            <div class="req-route">${r.from_airport} → ${r.to_airport}</div>
+            <div class="req-meta">${r.from_city || ''} → ${r.to_city || ''}</div>
+          </div>
+          <div class="req-badge new-b">
+            <div style="width:5px;height:5px;border-radius:50%;background:#58A6FF;animation:pulse 1.2s infinite"></div>New
+          </div>
+        </div>
+        <div class="req-details">
+          <div><div class="req-detail-label">Date</div><div class="req-detail-value">${new Date(r.flight_date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div></div>
+          <div><div class="req-detail-label">Time</div><div class="req-detail-value">${r.flight_time || 'Flexible'}</div></div>
+          <div><div class="req-detail-label">Passengers</div><div class="req-detail-value">${r.passengers} pax</div></div>
+          <div><div class="req-detail-label">Submitted</div><div class="req-detail-value">${new Date(r.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div></div>
+        </div>
+        ${r.notes ? `<div style="font-size:12px;color:var(--text3);padding:8px 12px;background:var(--bg3);border-radius:8px;margin-bottom:12px">📝 ${r.notes}</div>` : ''}
+        <div class="req-actions">
+          <button class="req-btn quote-btn" onclick="openModal('${r.id}','${r.from_airport}','${r.to_airport}','${r.flight_date}','${r.passengers}')">Submit Quote</button>
+          <button class="req-btn decline-btn">Decline</button>
+        </div>
+        <div id="qstate-${r.id}"></div>`;
+      list.appendChild(card);
+    });
+
+  } catch (err) {
+    showToast('error', '✕', 'Could not load requests', err.message);
+  }
+}
+
+// ══ LOAD FLEET ══
+async function loadFleet(operatorId) {
+  try {
+    const fleet = await sb.select('fleet', `?operator_id=eq.${operatorId}`);
+    const display = document.getElementById('fleet-display');
+    if (!fleet.length) return;
+
+    // Update quote modal aircraft options
+    const qmAc = document.getElementById('qm-ac');
+    qmAc.innerHTML = fleet.map(f => `<option value="${f.id}">${f.aircraft_type} (${f.tail_number})</option>`).join('');
+
+    display.innerHTML = fleet.map(f => `
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:12px;display:flex;align-items:center;gap:16px">
+        <div style="width:52px;height:52px;border-radius:14px;background:rgba(229,168,60,0.1);border:1px solid rgba(229,168,60,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold2)" stroke-width="1.8"><path d="M2 18L12 5L22 18"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
+        </div>
+        <div style="flex:1">
+          <div style="font-size:15px;font-weight:700;color:var(--text)">${f.aircraft_type}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">${f.tail_number} · ${f.max_passengers || '—'} seats · ${f.year || '—'} · Base: ${f.home_fbo || '—'}</div>
+        </div>
+        <div style="background:rgba(79,208,128,0.12);border:1px solid rgba(79,208,128,0.3);color:var(--green2);font-size:10px;font-weight:800;padding:4px 10px;border-radius:8px">${f.status || 'Available'}</div>
+      </div>`).join('');
+  } catch (err) {
+    console.error('Fleet load error:', err);
+  }
+}
+
+// ══ LOAD CLIENT REQUESTS ══
+async function loadClientRequests(clientId) {
+  try {
+    const requests = await sb.select('booking_requests', `?client_id=eq.${clientId}&order=created_at.desc`);
+    const list = document.getElementById('cl-requests-list');
+    if (!requests.length) return;
+
+    list.innerHTML = requests.map(r => {
+      const isIntl = (r.notes || '').toLowerCase().includes('international');
+      const statusColors = {
+        open: { bg: 'rgba(88,166,255,0.1)', border: 'rgba(88,166,255,0.3)', color: '#58A6FF', label: '🔵 Awaiting Quotes' },
+        quoted: { bg: 'rgba(229,168,60,0.1)', border: 'rgba(229,168,60,0.3)', color: 'var(--gold2)', label: '💛 Quotes Received' },
+        confirmed: { bg: 'rgba(79,208,128,0.1)', border: 'rgba(79,208,128,0.3)', color: 'var(--green2)', label: '✅ Confirmed' },
+        manifest_complete: { bg: 'rgba(79,208,128,0.1)', border: 'rgba(79,208,128,0.3)', color: 'var(--green2)', label: '✅ Manifest Complete' }
+      };
+      const s = statusColors[r.status] || statusColors.open;
+      const tripType = r.trip_type === 'return' ? '↔ Return' : r.trip_type === 'multistop' ? '✦ Multi-Stop' : '→ One Way';
+
+      return `<div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+          <div>
+            <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:600;color:var(--text)">${r.from_airport} → ${r.to_airport}</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:3px">${tripType} · ${new Date(r.flight_date).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'})} · ${r.passengers} pax</div>
+          </div>
+          <div style="background:${s.bg};border:1px solid ${s.border};color:${s.color};font-size:10px;font-weight:800;padding:5px 12px;border-radius:8px;white-space:nowrap">${s.label}</div>
+        </div>
+        ${r.notes ? `<div style="font-size:11px;color:var(--text3);background:var(--bg3);border-radius:8px;padding:8px 12px;margin-bottom:12px;line-height:1.6">📝 ${r.notes}</div>` : ''}
+        ${r.status === 'quoted' ? `
+        <button onclick="openManifest(null, ${r.passengers}, ${isIntl})" style="width:100%;height:42px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--bg);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M2 7l4 4 6-7"/></svg>
+          Accept Quote & Complete Passenger Manifest
+        </button>` : ''}
+        ${r.status === 'manifest_complete' ? `<div style="text-align:center;font-size:12px;color:var(--green2);font-weight:700;padding:8px">✓ Manifest submitted — awaiting final operator confirmation</div>` : ''}
+      </div>`;
+    }).join('');
+
+  } catch (err) {
+    console.error('Client requests load error:', err);
+  }
+}
+
+// ══ CLIENT SUBMIT BOOKING REQUEST ══
+async function submitBookingRequest() {
+  if (!currentClient) { showToast('error', '✕', 'Not signed in', 'Please sign in to submit a request.'); return; }
+
+  const from = document.getElementById('req-from').value.trim();
+  const to = document.getElementById('req-to').value.trim();
+  const date = document.getElementById('req-date').value;
+  const pax = document.getElementById('req-pax').value;
+  const time = document.getElementById('req-time').value;
+  const notes = document.getElementById('req-notes').value.trim();
+
+  if (!from || !to || !date) { showToast('error', '✕', 'Missing details', 'Please fill in departure, destination, and date.'); return; }
+
+  // Build preferences summary
+  const prefList = Array.from(activePrefs);
+  let prefNotes = '';
+  if (prefList.includes('catering')) {
+    const level = document.getElementById('req-catering-level')?.value || '';
+    const diet = document.getElementById('req-dietary')?.value || '';
+    prefNotes += `Catering: ${level}${diet !== 'None / Standard' ? ' · ' + diet : ''}. `;
+  }
+  if (prefList.includes('transport')) {
+    const type = document.getElementById('req-transport-type')?.value || '';
+    const addr = document.getElementById('req-transport-addr')?.value || '';
+    prefNotes += `Ground Transport: ${type}${addr ? ' from ' + addr : ''}. `;
+  }
+  if (prefList.includes('pet')) {
+    const breed = document.getElementById('req-pet-breed')?.value || '';
+    const weight = document.getElementById('req-pet-weight')?.value || '';
+    prefNotes += `Pet on board: ${breed}${weight ? ' ' + weight + 'lbs' : ''}. `;
+  }
+  if (prefList.includes('luggage')) {
+    const count = document.getElementById('req-luggage-count')?.value || '';
+    const items = document.getElementById('req-luggage-items')?.value || '';
+    prefNotes += `Heavy Luggage: ${count}${items ? ' — ' + items : ''}. `;
+  }
+  if (prefList.includes('wifi')) prefNotes += 'WiFi required. ';
+  if (prefList.includes('standup')) prefNotes += 'Stand-up cabin required. ';
+  if (prefList.includes('wheelchair')) prefNotes += 'Accessibility accommodations needed. ';
+  if (prefList.includes('international')) prefNotes += 'International flight. ';
+
+  // Minor info
+  let minorNotes = '';
+  if (minorsOn) {
+    const count = document.getElementById('req-minors-count')?.value || '';
+    const accompanied = document.getElementById('req-minors-accompanied')?.value || '';
+    const ages = document.getElementById('req-minors-ages')?.value || '';
+    minorNotes = `MINORS ON BOARD: ${count} minor(s), ${accompanied === 'yes' ? 'accompanied' : 'UNACCOMPANIED'}${ages ? ', ages: ' + ages : ''}. `;
+  }
+
+  const tripTypeLabel = currentTripType === 'oneway' ? 'One Way' : currentTripType === 'return' ? 'Return' : 'Multi-Stop';
+  const returnInfo = currentTripType === 'return' ? `Return date: ${document.getElementById('req-return-date')?.value || 'TBD'}. ` : '';
+  const fullNotes = [minorNotes, prefNotes, returnInfo, notes].filter(Boolean).join(' ').trim();
+
+  const btn = document.getElementById('req-submit-btn');
+  btn.classList.add('loading'); btn.textContent = 'Getting quotes...';
+
+  try {
+    const [saved] = await sb.insert('booking_requests', {
+      client_id: currentClient.id,
+      trip_type: currentTripType,
+      from_airport: from.split('—')[0].trim().toUpperCase(),
+      from_city: from.includes('—') ? from.split('—')[1].trim() : from,
+      to_airport: to.split('—')[0].trim().toUpperCase(),
+      to_city: to.includes('—') ? to.split('—')[1].trim() : to,
       flight_date: date,
-      passengers: _passengers,
+      flight_time: time || 'Flexible',
+      passengers: parseInt(pax),
+      notes: fullNotes || null,
       status: 'open'
-    }).then(function(res) {
-      if (res.error) console.warn('Booking request save:', res.error.message);
     });
+
+    btn.classList.remove('loading');
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polygon points="8,1 10.5,6 16,6.8 12,10.7 12.9,16 8,13.5 3.1,16 4,10.7 0,6.8 5.5,6"/></svg> Get Instant Quotes';
+
+    // Reset form
+    document.getElementById('req-from').value = '';
+    document.getElementById('req-to').value = '';
+    document.getElementById('req-notes').value = '';
+    activePrefs.forEach(p => {
+      document.getElementById('pref-' + p)?.classList.remove('selected');
+      if (prefDetails[p]) document.getElementById(prefDetails[p]).style.display = 'none';
+    });
+    activePrefs.clear();
+    if (minorsOn) toggleMinors();
+
+    showToast('success', '✓', 'Request sent to verified operators', `${saved.from_airport} → ${saved.to_airport} · ${pax} pax`);
+    loadClientRequests(currentClient.id);
+
+  } catch (err) {
+    btn.classList.remove('loading');
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polygon points="8,1 10.5,6 16,6.8 12,10.7 12.9,16 8,13.5 3.1,16 4,10.7 0,6.8 5.5,6"/></svg> Get Instant Quotes';
+    showToast('error', '✕', 'Could not submit request', err.message);
   }
-  setTimeout(renderMockQuotes, 1800);
-}
-function renderMockQuotes() {
-  var html = '';
-  for (var i=0; i < MOCK_QUOTES.length; i++) {
-    var q = MOCK_QUOTES[i];
-    html += '<div class="quote-card">' +
-      '<div class="qc-top">' +
-        '<div>' +
-          '<div class="qc-operator">' + q.operator + '</div>' +
-          '<div class="qc-aircraft">' + q.aircraft + '</div>' +
-          '<div class="qc-tail">' + q.tail + '</div>' +
-        '</div>' +
-        '<div class="qc-price">' +
-          '<div class="qc-amount">$' + q.price.toLocaleString() + '</div>' +
-          '<div class="qc-inc">All-in · No hidden fees</div>' +
-        '</div>' +
-      '</div>' +
-      '<div class="qc-specs">' +
-        '<div class="qc-spec"><div class="qs-val">' + q.pax + '</div><div class="qs-lbl">Max Pax</div></div>' +
-        '<div class="qc-spec"><div class="qs-val">' + q.flightTime + '</div><div class="qs-lbl">Est. Time</div></div>' +
-        '<div class="qc-spec"><div class="qs-val">' + q.range + '</div><div class="qs-lbl">Range</div></div>' +
-      '</div>' +
-      '<div class="qc-actions">' +
-        '<button class="btn-details">Details</button>' +
-        '<button class="btn-book" onclick="startBooking(' + i + ')">Book This Flight &#x2192;</button>' +
-      '</div>' +
-    '</div>';
-  }
-  document.getElementById('results-list').innerHTML = html;
 }
 
-// ── BOOKING FLOW ──
-function startBooking(idx) {
-  _selectedQuote = MOCK_QUOTES[idx];
-  _bookingStep = 1;
-  _passengerForms = [];
-  for (var i=0; i < _passengers; i++) _passengerForms.push({});
-  renderBookingStep();
-  showAppScreen('booking');
+// ══ QUOTE MODAL ══
+function openModal(id, from, to, date, pax) {
+  activeReqId = id;
+  document.getElementById('qm-sub').textContent = `${from} → ${to} · ${new Date(date).toLocaleDateString('en-US',{month:'short',day:'numeric'})} · ${pax} pax`;
+  document.getElementById('quote-modal').classList.add('show');
+  updateSettle();
 }
-function renderBookingStep() {
-  var titles = ['Passenger Details','Preferences & Services','Review & Confirm'];
-  var progrs = ['33%','66%','100%'];
-  document.getElementById('booking-step-title').textContent = titles[_bookingStep - 1];
-  document.getElementById('booking-step-num').textContent = 'Step ' + _bookingStep + ' of 3';
-  document.getElementById('booking-progress').style.width = progrs[_bookingStep - 1];
-  var btn = document.getElementById('booking-next-btn');
-  btn.textContent = _bookingStep < 3 ? 'Continue \u2192' : 'Confirm & Pay';
 
-  if (_bookingStep === 1) renderPassengerStep();
-  else if (_bookingStep === 2) renderPreferencesStep();
-  else renderConfirmStep();
+function closeModal() { document.getElementById('quote-modal').classList.remove('show'); }
+
+function updateSettle() {
+  const price = parseFloat(document.getElementById('qm-price').value) || 0;
+  document.getElementById('sp-quote').textContent = '$' + price.toLocaleString();
+  document.getElementById('sp-net').textContent = '$' + price.toLocaleString();
 }
-function renderPassengerStep() {
-  var html = '<div class="section-title">Passenger Information</div>';
-  for (var i=0; i < _passengers; i++) {
-    var lbl = i === 0 ? 'Lead Passenger (You)' : 'Passenger ' + (i+1);
-    html += '<div class="pax-card">' +
-      '<div class="pax-card-head"><span class="pax-num">' + lbl + '</span>' +
-      (i > 0 ? '<button class="pax-remove" onclick="removePax(' + i + ')">&#x2715;</button>' : '') +
-      '</div>' +
-      '<div class="field-row">' +
-        '<div class="field-wrap"><div class="field-label">First Name</div><input class="field-input" id="pf-' + i + '-first" placeholder="First"></div>' +
-        '<div class="field-wrap"><div class="field-label">Last Name</div><input class="field-input" id="pf-' + i + '-last" placeholder="Last"></div>' +
-      '</div>' +
-      '<div class="field-row">' +
-        '<div class="field-wrap"><div class="field-label">Date of Birth</div><input class="field-input" type="date" id="pf-' + i + '-dob"></div>' +
-        '<div class="field-wrap"><div class="field-label">Passport / ID</div><input class="field-input" id="pf-' + i + '-doc" placeholder="Number"></div>' +
-      '</div>' +
-    '</div>';
+
+// ══ SUBMIT QUOTE — SAVE TO SUPABASE ══
+async function submitQuote() {
+  const price = parseFloat(document.getElementById('qm-price').value) || 0;
+  const aircraftSelect = document.getElementById('qm-ac');
+  const aircraftLabel = aircraftSelect.options[aircraftSelect.selectedIndex].text;
+  const flightTime = document.getElementById('qm-time').value;
+  const btn = document.getElementById('qm-submit-btn');
+
+  btn.classList.add('loading'); btn.textContent = 'Sending quote...';
+
+  try {
+    await sb.insert('quotes', {
+      booking_request_id: activeReqId,
+      operator_id: currentOperator.id,
+      price: price,
+      aircraft_label: aircraftLabel,
+      flight_time: flightTime,
+      notes: null,
+      status: 'pending'
+    });
+
+    // Update request status
+    await sb.update('booking_requests', { status: 'quoted' }, `?id=eq.${activeReqId}`);
+
+    quoteCount++;
+    settleTotal += price;
+    document.getElementById('d-stat-quotes').textContent = quoteCount;
+    document.getElementById('d-stat-revenue').textContent = '$' + settleTotal.toLocaleString();
+
+    // Update card UI
+    const card = document.getElementById('rc-' + activeReqId);
+    if (card) {
+      card.classList.remove('new-req');
+      const badge = card.querySelector('.req-badge');
+      if (badge) { badge.className = 'req-badge quoted-b'; badge.innerHTML = '✓ Quoted'; }
+      const actions = card.querySelector('.req-actions');
+      if (actions) actions.style.display = 'none';
+      const qstate = document.getElementById('qstate-' + activeReqId);
+      if (qstate) {
+        qstate.innerHTML = `<div class="payout-clean">
+          <div class="payout-row"><div class="payout-label">Aircraft</div><div class="payout-value">${aircraftLabel}</div></div>
+          <div class="payout-row"><div class="payout-label">Quote submitted</div><div class="payout-value">$${price.toLocaleString()}</div></div>
+          <div class="payout-row"><div class="payout-label">Your settlement</div><div class="payout-value green">$${price.toLocaleString()}</div></div>
+        </div>`;
+      }
+    }
+
+    btn.classList.remove('loading');
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M2 8l4 4 8-8"/></svg> Send Quote to Client';
+    closeModal();
+    showToast('success', '✓', 'Quote sent to client', '$' + price.toLocaleString() + ' · ' + aircraftLabel);
+
+  } catch (err) {
+    btn.classList.remove('loading');
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M2 8l4 4 8-8"/></svg> Send Quote to Client';
+    showToast('error', '✕', 'Could not send quote', err.message);
   }
-  html += '<button onclick="addPax()" style="width:100%;height:42px;border-radius:11px;border:1.5px dashed var(--border2);background:transparent;color:var(--text3);font-size:13px;cursor:pointer;font-family:\'DM Sans\',sans-serif;margin-top:4px;">+ Add Passenger</button>';
-  document.getElementById('booking-body').innerHTML = html;
 }
-function renderPreferencesStep() {
-  var html = '<div class="section-title" style="margin-bottom:14px;">Catering</div>';
-  var catering = [
-    {id:'none',title:'No Catering',desc:'Beverages only',price:'Included'},
-    {id:'light',title:'Light Refreshments',desc:'Charcuterie, fresh fruit, pastries',price:'+$450'},
-    {id:'full',title:'Full Catering',desc:'Custom menu, plated meals, premium bar',price:'+$1,200'},
-  ];
-  for (var i=0; i < catering.length; i++) {
-    var c = catering[i];
-    html += '<div class="pref-option' + (i===0?' sel':'') + '" onclick="selPref(this,\'catering\')" data-val="' + c.id + '">' +
-      '<div><div class="po-title">' + c.title + '</div><div class="po-desc">' + c.desc + '</div></div>' +
-      '<div class="po-price">' + c.price + '</div></div>';
-  }
-  html += '<div class="section-title" style="margin-top:20px;margin-bottom:14px;">Ground Transport</div>';
-  var transport = [
-    {id:'none',title:'No Transfer',desc:'Own arrangement',price:'—'},
-    {id:'suv',title:'Luxury SUV',desc:'Black SUV to/from FBO',price:'+$280'},
-    {id:'sedan',title:'Executive Sedan',desc:'Town car service',price:'+$180'},
-  ];
-  for (var j=0; j < transport.length; j++) {
-    var t = transport[j];
-    html += '<div class="pref-option' + (j===0?' sel':'') + '" onclick="selPref(this,\'transport\')" data-val="' + t.id + '">' +
-      '<div><div class="po-title">' + t.title + '</div><div class="po-desc">' + t.desc + '</div></div>' +
-      '<div class="po-price">' + t.price + '</div></div>';
-  }
-  html += '<div style="margin-top:16px;"><div class="field-label" style="margin-bottom:6px;">Special Requests (Optional)</div><textarea class="field-input" style="height:80px;padding:12px;resize:none;line-height:1.5;" placeholder="Dietary restrictions, onboard preferences, special occasions..."></textarea></div>';
-  document.getElementById('booking-body').innerHTML = html;
-}
-function renderConfirmStep() {
-  if (!_selectedQuote) return;
-  var q = _selectedQuote;
-  var html =
-    '<div class="section-title">Flight Summary</div>' +
-    '<div style="background:var(--card2);border:1px solid var(--border2);border-radius:14px;padding:16px;margin-bottom:16px;">' +
-      '<div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:3px;">' + q.operator + '</div>' +
-      '<div style="font-family:\'Playfair Display\',serif;font-size:22px;font-weight:600;margin-bottom:2px;">' + _fromAirport.code + ' &#x2192; ' + _toAirport.code + '</div>' +
-      '<div style="font-size:12px;color:var(--text3);">' + q.aircraft + ' &middot; ' + q.tail + ' &middot; ' + q.flightTime + '</div>' +
-    '</div>' +
-    '<div class="section-title">Price Breakdown</div>' +
-    '<div style="background:var(--card2);border:1px solid var(--border2);border-radius:14px;padding:16px;margin-bottom:16px;">' +
-      '<div class="payment-line"><span class="pl-label">Charter Flight</span><span class="pl-val">$' + q.price.toLocaleString() + '</span></div>' +
-      '<div class="payment-line"><span class="pl-label">Catering</span><span class="pl-val">Included</span></div>' +
-      '<div class="payment-line"><span class="pl-label">FBO Fees</span><span class="pl-val">Included</span></div>' +
-      '<div class="payment-line"><span class="pl-label">Platform Fee</span><span class="pl-val" style="color:var(--green);">$0</span></div>' +
-      '<div class="total-line"><span>Total</span><span class="total-val">$' + q.price.toLocaleString() + '</span></div>' +
-    '</div>' +
-    '<div class="section-title">Payment</div>' +
-    '<div class="card-field-wrap">' +
-      '<div class="field-wrap"><div class="field-label">Card Number</div><input class="field-input" placeholder="4242 4242 4242 4242"></div>' +
-      '<div class="card-row">' +
-        '<div class="field-wrap" style="flex:1"><div class="field-label">Expiry</div><input class="field-input" placeholder="MM / YY"></div>' +
-        '<div class="field-wrap" style="flex:1"><div class="field-label">CVV</div><input class="field-input" placeholder="123"></div>' +
-      '</div>' +
-      '<div class="field-wrap"><div class="field-label">Cardholder Name</div><input class="field-input" placeholder="Full name on card"></div>' +
-    '</div>' +
-    '<div style="font-size:11px;color:var(--text3);line-height:1.7;margin-top:2px;">By confirming, you agree to Aviate Atelier\'s Booking Terms. Payment is processed securely via Stripe. All bookings are confirmed immediately.</div>';
-  document.getElementById('booking-body').innerHTML = html;
-}
-function selPref(el, group) {
-  document.querySelectorAll('.pref-option[data-val]').forEach(function(o){
-    if (group === 'catering' && ['none','light','full'].includes(o.dataset.val)) o.classList.remove('sel');
-    if (group === 'transport' && ['none','suv','sedan'].includes(o.dataset.val)) o.classList.remove('sel');
+
+// ══ DASHBOARD TABS ══
+function switchDashTab(tab) {
+  ['requests', 'bookings', 'fleet', 'osa'].forEach(t => {
+    const el = document.getElementById('dtab-' + t);
+    if (el) el.style.display = t === tab ? 'block' : 'none';
+    const si = document.querySelector(`.sidebar-item[onclick="switchDashTab('${t}')"]`);
+    if (si) si.classList.toggle('active', t === tab);
   });
-  el.classList.add('sel');
-}
-function addPax() {
-  _passengers = Math.min(14, _passengers + 1);
-  _passengerForms.push({});
-  document.getElementById('pax-count').textContent = _passengers;
-  renderPassengerStep();
-}
-function removePax(idx) {
-  _passengers = Math.max(1, _passengers - 1);
-  _passengerForms.splice(idx, 1);
-  renderPassengerStep();
-}
-function bookingNext() {
-  if (_bookingStep < 3) {
-    _bookingStep++;
-    renderBookingStep();
-    document.getElementById('booking-body').scrollTop = 0;
-  } else {
-    confirmBooking();
-  }
-}
-function bookingBack() {
-  if (_bookingStep > 1) {
-    _bookingStep--;
-    renderBookingStep();
-  } else {
-    showAppScreen('results');
-  }
-}
-function confirmBooking() {
-  // Save confirmed booking to Supabase
-  if (_clientRecord && _selectedQuote) {
-    _sb.from('bookings').insert({
-      client_id: _clientRecord.id,
-      total_paid: _selectedQuote.price,
-      platform_commission: Math.round(_selectedQuote.price * 0.05),
-      operator_settlement: Math.round(_selectedQuote.price * 0.95),
-      status: 'confirmed',
-      catering_level: 'none'
-    }).then(function(res) {
-      if (res.error) console.warn('Booking save:', res.error.message);
-    });
-  }
-  showAppScreen('trips');
-  switchAppTab('trips', document.querySelectorAll('.bn-i')[1]);
-  loadTrips('upcoming');
-  showToast('&#x2713;','Booking Confirmed!','Your charter is booked \u00b7 Confirmation sent to ' + (_user ? _user.email : 'your email'));
+  const titles = {
+    requests: ['New Requests', 'Incoming booking requests matching your fleet'],
+    bookings: ['Active Bookings', 'Confirmed bookings and upcoming flights'],
+    fleet: ['Fleet & Certifications', 'Your aircraft and compliance status'],
+    osa: ['My Agreement', 'Your signed Operator Services Agreement']
+  };
+  const [title, sub] = titles[tab] || ['Dashboard', ''];
+  document.getElementById('dash-page-title').textContent = title;
+  document.getElementById('dash-page-sub').textContent = sub;
+  if (tab === 'fleet' && currentOperator) loadFleet(currentOperator.id);
+  if (tab === 'requests') loadRequests();
 }
 
-// ── TRIPS ──
-function loadTrips(filter) { filterTrips(filter, null); }
-function filterTrips(filter, el) {
-  if (el) {
-    document.querySelectorAll('.tt-btn').forEach(b => b.classList.remove('active'));
-    el.classList.add('active');
-  }
-  var trips = MOCK_TRIPS[filter] || [];
-  var html = '';
-  for (var i=0; i < trips.length; i++) {
-    var t = trips[i];
-    var statusClass = 'tc-st-' + t.status;
-    var statusLabel = t.status === 'upcoming' ? 'Upcoming' : t.status === 'pending' ? 'Awaiting Quotes' : 'Completed';
-    html += '<div class="trip-card">' +
-      '<div class="tc-route">' + t.route + '</div>' +
-      '<div class="tc-meta">' + t.date + ' &middot; ' + t.pax + ' pax</div>' +
-      '<span class="tc-status ' + statusClass + '">' + statusLabel + '</span>' +
-      '<div class="tc-footer"><span class="tc-aircraft">' + t.aircraft + '</span><span class="tc-price">' + t.price + '</span></div>' +
-    '</div>';
-  }
-  if (!trips.length) html = '<div style="text-align:center;padding:40px;color:var(--text3);">No ' + filter + ' trips</div>';
-  document.getElementById('trips-list').innerHTML = html;
+// ══ LOGOUT ══
+function logout() {
+  auth.clear();
+  currentOperator = null;
+  currentClient = null;
+  document.getElementById('nav-status').style.display = 'none';
+  document.getElementById('nav-logout-btn').style.display = 'none';
+  showView('view-landing');
+  showToast('success', '✓', 'Signed out', 'See you next time.');
 }
 
-// ── TOAST ──
-function showToast(ico, msg, sub) {
-  var t = document.getElementById('toast');
-  document.getElementById('toast-ico').innerHTML = ico;
-  document.getElementById('toast-msg').textContent = msg;
-  document.getElementById('toast-sub').textContent = sub || '';
+// ══ TOAST ══
+function showToast(type, icon, title, sub) {
+  const t = document.getElementById('toast');
+  const wrap = document.getElementById('toast-icon-wrap');
+  t.className = 'toast ' + (type === 'error' ? 'error' : 'success');
+  wrap.className = 'toast-icon-wrap' + (type === 'error' ? ' error' : '');
+  const iconColor = type === 'error' ? '#FF6B6B' : 'var(--green2)';
+  wrap.innerHTML = `<svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="${iconColor}" stroke-width="2.5"><path d="${type === 'error' ? 'M4 4l10 10M14 4L4 14' : 'M3 9l5 5 7-8'}"/></svg>`;
+  document.getElementById('toast-title').textContent = title;
+  document.getElementById('toast-sub').textContent = sub;
   t.classList.add('show');
-  setTimeout(function(){ t.classList.remove('show'); }, 3500);
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 4500);
 }
 
-// Set today's date on load
-(function(){ var d = new Date(); d.setDate(d.getDate()+1); var el = document.getElementById('flight-date'); if(el) el.value = d.toISOString().split('T')[0]; })();
-</script>
+
+// ══ AIRPORT DATA ══
+const AIRPORTS = [
+  // ── USA: NORTHEAST ──
+  {code:"JFK",name:"John F. Kennedy International",city:"New York, NY",country:"USA"},
+  {code:"LGA",name:"LaGuardia",city:"New York, NY",country:"USA"},
+  {code:"EWR",name:"Newark Liberty International",city:"Newark, NJ",country:"USA"},
+  {code:"TEB",name:"Teterboro",city:"Teterboro, NJ",country:"USA"},
+  {code:"HPN",name:"Westchester County",city:"White Plains, NY",country:"USA"},
+  {code:"BOS",name:"Logan International",city:"Boston, MA",country:"USA"},
+  {code:"BED",name:"Hanscom Field",city:"Bedford, MA",country:"USA"},
+  {code:"PHL",name:"Philadelphia International",city:"Philadelphia, PA",country:"USA"},
+  {code:"PNE",name:"Northeast Philadelphia",city:"Philadelphia, PA",country:"USA"},
+  {code:"DCA",name:"Reagan National",city:"Washington, DC",country:"USA"},
+  {code:"IAD",name:"Dulles International",city:"Washington, DC",country:"USA"},
+  {code:"BWI",name:"Baltimore-Washington International",city:"Baltimore, MD",country:"USA"},
+  {code:"ACY",name:"Atlantic City International",city:"Atlantic City, NJ",country:"USA"},
+  {code:"PIT",name:"Pittsburgh International",city:"Pittsburgh, PA",country:"USA"},
+  {code:"RIC",name:"Richmond International",city:"Richmond, VA",country:"USA"},
+  {code:"ORF",name:"Norfolk International",city:"Norfolk, VA",country:"USA"},
+  {code:"BTV",name:"Burlington International",city:"Burlington, VT",country:"USA"},
+  {code:"PWM",name:"Portland International Jetport",city:"Portland, ME",country:"USA"},
+  {code:"BDL",name:"Bradley International",city:"Hartford, CT",country:"USA"},
+  {code:"PVD",name:"T.F. Green Airport",city:"Providence, RI",country:"USA"},
+  {code:"ALB",name:"Albany International",city:"Albany, NY",country:"USA"},
+  {code:"SYR",name:"Syracuse Hancock International",city:"Syracuse, NY",country:"USA"},
+  {code:"ROC",name:"Greater Rochester International",city:"Rochester, NY",country:"USA"},
+  {code:"BUF",name:"Buffalo Niagara International",city:"Buffalo, NY",country:"USA"},
+  // ── USA: SOUTHEAST ──
+  {code:"ATL",name:"Hartsfield-Jackson Atlanta",city:"Atlanta, GA",country:"USA"},
+  {code:"PDK",name:"DeKalb-Peachtree",city:"Atlanta, GA",country:"USA"},
+  {code:"MIA",name:"Miami International",city:"Miami, FL",country:"USA"},
+  {code:"OPF",name:"Opa-locka Executive",city:"Miami, FL",country:"USA"},
+  {code:"TMB",name:"Miami Executive",city:"Miami, FL",country:"USA"},
+  {code:"FLL",name:"Fort Lauderdale-Hollywood",city:"Fort Lauderdale, FL",country:"USA"},
+  {code:"FXE",name:"Fort Lauderdale Executive",city:"Fort Lauderdale, FL",country:"USA"},
+  {code:"PBI",name:"Palm Beach International",city:"West Palm Beach, FL",country:"USA"},
+  {code:"BCT",name:"Boca Raton Airport",city:"Boca Raton, FL",country:"USA"},
+  {code:"MCO",name:"Orlando International",city:"Orlando, FL",country:"USA"},
+  {code:"ORL",name:"Orlando Executive",city:"Orlando, FL",country:"USA"},
+  {code:"TPA",name:"Tampa International",city:"Tampa, FL",country:"USA"},
+  {code:"PIE",name:"St. Pete-Clearwater International",city:"Clearwater, FL",country:"USA"},
+  {code:"SRQ",name:"Sarasota-Bradenton",city:"Sarasota, FL",country:"USA"},
+  {code:"RSW",name:"Southwest Florida International",city:"Fort Myers, FL",country:"USA"},
+  {code:"EYW",name:"Key West International",city:"Key West, FL",country:"USA"},
+  {code:"JAX",name:"Jacksonville International",city:"Jacksonville, FL",country:"USA"},
+  {code:"TLH",name:"Tallahassee International",city:"Tallahassee, FL",country:"USA"},
+  {code:"PNS",name:"Pensacola International",city:"Pensacola, FL",country:"USA"},
+  {code:"CLT",name:"Charlotte Douglas International",city:"Charlotte, NC",country:"USA"},
+  {code:"RDU",name:"Raleigh-Durham International",city:"Raleigh, NC",country:"USA"},
+  {code:"CHS",name:"Charleston International",city:"Charleston, SC",country:"USA"},
+  {code:"GSP",name:"Greenville-Spartanburg",city:"Greer, SC",country:"USA"},
+  {code:"MYR",name:"Myrtle Beach International",city:"Myrtle Beach, SC",country:"USA"},
+  {code:"SAV",name:"Savannah-Hilton Head International",city:"Savannah, GA",country:"USA"},
+  {code:"BHM",name:"Birmingham-Shuttlesworth International",city:"Birmingham, AL",country:"USA"},
+  {code:"MSY",name:"Louis Armstrong New Orleans",city:"New Orleans, LA",country:"USA"},
+  {code:"MEM",name:"Memphis International",city:"Memphis, TN",country:"USA"},
+  {code:"BNA",name:"Nashville International",city:"Nashville, TN",country:"USA"},
+  {code:"TYS",name:"McGhee Tyson Airport",city:"Knoxville, TN",country:"USA"},
+  {code:"SDF",name:"Louisville International",city:"Louisville, KY",country:"USA"},
+  {code:"LEX",name:"Blue Grass Airport",city:"Lexington, KY",country:"USA"},
+  // ── USA: MIDWEST ──
+  {code:"ORD",name:"O'Hare International",city:"Chicago, IL",country:"USA"},
+  {code:"MDW",name:"Midway International",city:"Chicago, IL",country:"USA"},
+  {code:"PWK",name:"Chicago Executive",city:"Wheeling, IL",country:"USA"},
+  {code:"DTW",name:"Detroit Metropolitan",city:"Detroit, MI",country:"USA"},
+  {code:"PTK",name:"Oakland County International",city:"Pontiac, MI",country:"USA"},
+  {code:"CLE",name:"Cleveland Hopkins International",city:"Cleveland, OH",country:"USA"},
+  {code:"CMH",name:"John Glenn Columbus International",city:"Columbus, OH",country:"USA"},
+  {code:"CVG",name:"Cincinnati Northern Kentucky",city:"Cincinnati, OH",country:"USA"},
+  {code:"IND",name:"Indianapolis International",city:"Indianapolis, IN",country:"USA"},
+  {code:"MKE",name:"Milwaukee Mitchell International",city:"Milwaukee, WI",country:"USA"},
+  {code:"MSP",name:"Minneapolis Saint Paul",city:"Minneapolis, MN",country:"USA"},
+  {code:"STL",name:"St. Louis Lambert International",city:"St. Louis, MO",country:"USA"},
+  {code:"MCI",name:"Kansas City International",city:"Kansas City, MO",country:"USA"},
+  {code:"OMA",name:"Eppley Airfield",city:"Omaha, NE",country:"USA"},
+  {code:"DSM",name:"Des Moines International",city:"Des Moines, IA",country:"USA"},
+  {code:"FSD",name:"Sioux Falls Regional",city:"Sioux Falls, SD",country:"USA"},
+  {code:"FAR",name:"Hector International",city:"Fargo, ND",country:"USA"},
+  // ── USA: SOUTHWEST & MOUNTAIN ──
+  {code:"DFW",name:"Dallas Fort Worth International",city:"Dallas, TX",country:"USA"},
+  {code:"DAL",name:"Dallas Love Field",city:"Dallas, TX",country:"USA"},
+  {code:"ADS",name:"Addison Airport",city:"Addison, TX",country:"USA"},
+  {code:"HOU",name:"William P. Hobby",city:"Houston, TX",country:"USA"},
+  {code:"IAH",name:"George Bush Intercontinental",city:"Houston, TX",country:"USA"},
+  {code:"SAT",name:"San Antonio International",city:"San Antonio, TX",country:"USA"},
+  {code:"AUS",name:"Austin-Bergstrom International",city:"Austin, TX",country:"USA"},
+  {code:"ELP",name:"El Paso International",city:"El Paso, TX",country:"USA"},
+  {code:"PHX",name:"Phoenix Sky Harbor",city:"Phoenix, AZ",country:"USA"},
+  {code:"DVT",name:"Phoenix Deer Valley",city:"Phoenix, AZ",country:"USA"},
+  {code:"TUS",name:"Tucson International",city:"Tucson, AZ",country:"USA"},
+  {code:"ABQ",name:"Albuquerque International",city:"Albuquerque, NM",country:"USA"},
+  {code:"DEN",name:"Denver International",city:"Denver, CO",country:"USA"},
+  {code:"APA",name:"Centennial Airport",city:"Denver, CO",country:"USA"},
+  {code:"COS",name:"Colorado Springs Airport",city:"Colorado Springs, CO",country:"USA"},
+  {code:"ASE",name:"Aspen-Pitkin County",city:"Aspen, CO",country:"USA"},
+  {code:"HDN",name:"Yampa Valley Airport",city:"Steamboat Springs, CO",country:"USA"},
+  {code:"SLC",name:"Salt Lake City International",city:"Salt Lake City, UT",country:"USA"},
+  {code:"LAS",name:"Harry Reid International",city:"Las Vegas, NV",country:"USA"},
+  {code:"HND",name:"Henderson Executive",city:"Las Vegas, NV",country:"USA"},
+  {code:"RNO",name:"Reno-Tahoe International",city:"Reno, NV",country:"USA"},
+  {code:"BOI",name:"Boise Airport",city:"Boise, ID",country:"USA"},
+  {code:"BZN",name:"Bozeman Yellowstone International",city:"Bozeman, MT",country:"USA"},
+  {code:"JAC",name:"Jackson Hole Airport",city:"Jackson, WY",country:"USA"},
+  {code:"SUN",name:"Friedman Memorial",city:"Sun Valley, ID",country:"USA"},
+  // ── USA: WEST COAST ──
+  {code:"LAX",name:"Los Angeles International",city:"Los Angeles, CA",country:"USA"},
+  {code:"VNY",name:"Van Nuys",city:"Los Angeles, CA",country:"USA"},
+  {code:"BUR",name:"Hollywood Burbank",city:"Burbank, CA",country:"USA"},
+  {code:"SNA",name:"John Wayne Airport",city:"Orange County, CA",country:"USA"},
+  {code:"LGB",name:"Long Beach Airport",city:"Long Beach, CA",country:"USA"},
+  {code:"SAN",name:"San Diego International",city:"San Diego, CA",country:"USA"},
+  {code:"SFO",name:"San Francisco International",city:"San Francisco, CA",country:"USA"},
+  {code:"SQL",name:"San Carlos Airport",city:"San Carlos, CA",country:"USA"},
+  {code:"SJC",name:"Mineta San Jose International",city:"San Jose, CA",country:"USA"},
+  {code:"OAK",name:"Oakland International",city:"Oakland, CA",country:"USA"},
+  {code:"SMF",name:"Sacramento International",city:"Sacramento, CA",country:"USA"},
+  {code:"SBA",name:"Santa Barbara Airport",city:"Santa Barbara, CA",country:"USA"},
+  {code:"STS",name:"Charles M. Schulz-Sonoma County",city:"Santa Rosa, CA",country:"USA"},
+  {code:"SEA",name:"Seattle-Tacoma International",city:"Seattle, WA",country:"USA"},
+  {code:"BFI",name:"Boeing Field King County",city:"Seattle, WA",country:"USA"},
+  {code:"PDX",name:"Portland International",city:"Portland, OR",country:"USA"},
+  {code:"GEG",name:"Spokane International",city:"Spokane, WA",country:"USA"},
+  {code:"ANC",name:"Ted Stevens Anchorage International",city:"Anchorage, AK",country:"USA"},
+  {code:"HNL",name:"Honolulu Daniel K. Inouye International",city:"Honolulu, HI",country:"USA"},
+  {code:"OGG",name:"Kahului Airport",city:"Maui, HI",country:"USA"},
+  {code:"KOA",name:"Ellison Onizuka Kona International",city:"Kona, HI",country:"USA"},
+  // ── CANADA ──
+  {code:"YYZ",name:"Toronto Pearson International",city:"Toronto, ON",country:"Canada"},
+  {code:"YTZ",name:"Billy Bishop Toronto City",city:"Toronto, ON",country:"Canada"},
+  {code:"YUL",name:"Montreal Pierre Elliott Trudeau",city:"Montreal, QC",country:"Canada"},
+  {code:"YVR",name:"Vancouver International",city:"Vancouver, BC",country:"Canada"},
+  {code:"YYC",name:"Calgary International",city:"Calgary, AB",country:"Canada"},
+  {code:"YEG",name:"Edmonton International",city:"Edmonton, AB",country:"Canada"},
+  {code:"YOW",name:"Ottawa Macdonald-Cartier",city:"Ottawa, ON",country:"Canada"},
+  {code:"YHZ",name:"Halifax Stanfield International",city:"Halifax, NS",country:"Canada"},
+  {code:"YWG",name:"Winnipeg James Armstrong Richardson",city:"Winnipeg, MB",country:"Canada"},
+  // ── CARIBBEAN & BAHAMAS ──
+  {code:"NAS",name:"Lynden Pindling International",city:"Nassau, Bahamas",country:"Bahamas"},
+  {code:"GGT",name:"Exuma International",city:"George Town, Bahamas",country:"Bahamas"},
+  {code:"ELH",name:"North Eleuthera Airport",city:"Eleuthera, Bahamas",country:"Bahamas"},
+  {code:"MHH",name:"Marsh Harbour Airport",city:"Abaco, Bahamas",country:"Bahamas"},
+  {code:"SXM",name:"Princess Juliana International",city:"St. Maarten",country:"Sint Maarten"},
+  {code:"AXA",name:"Clayton J. Lloyd International",city:"Anguilla",country:"Anguilla"},
+  {code:"STT",name:"Cyril E. King Airport",city:"St. Thomas, USVI",country:"USA"},
+  {code:"SJU",name:"Luis Munoz Marin International",city:"San Juan, PR",country:"USA"},
+  {code:"BQN",name:"Rafael Hernandez Airport",city:"Aguadilla, PR",country:"USA"},
+  {code:"PLS",name:"Providenciales International",city:"Turks and Caicos",country:"Turks & Caicos"},
+  {code:"GCM",name:"Owen Roberts International",city:"Grand Cayman",country:"Cayman Islands"},
+  {code:"MBJ",name:"Sangster International",city:"Montego Bay, Jamaica",country:"Jamaica"},
+  {code:"KIN",name:"Norman Manley International",city:"Kingston, Jamaica",country:"Jamaica"},
+  {code:"ANU",name:"V.C. Bird International",city:"Antigua",country:"Antigua"},
+  {code:"BGI",name:"Grantley Adams International",city:"Bridgetown, Barbados",country:"Barbados"},
+  {code:"TAB",name:"A.N.R. Robinson International",city:"Tobago",country:"Trinidad & Tobago"},
+  {code:"POS",name:"Piarco International",city:"Port of Spain, Trinidad",country:"Trinidad & Tobago"},
+  {code:"CUR",name:"Hato International",city:"Curacao",country:"Curacao"},
+  {code:"AUA",name:"Queen Beatrix International",city:"Aruba",country:"Aruba"},
+  {code:"PTP",name:"Pointe-a-Pitre International",city:"Guadeloupe",country:"Guadeloupe"},
+  {code:"FDF",name:"Martinique Aime Cesaire",city:"Fort-de-France, Martinique",country:"Martinique"},
+  {code:"HAV",name:"Jose Marti International",city:"Havana, Cuba",country:"Cuba"},
+  {code:"VRA",name:"Juan Gualberto Gomez Airport",city:"Varadero, Cuba",country:"Cuba"},
+  // ── MEXICO & CENTRAL AMERICA ──
+  {code:"MEX",name:"Benito Juarez International",city:"Mexico City",country:"Mexico"},
+  {code:"CUN",name:"Cancun International",city:"Cancun",country:"Mexico"},
+  {code:"GDL",name:"Don Miguel Hidalgo y Costilla",city:"Guadalajara",country:"Mexico"},
+  {code:"MTY",name:"General Mariano Escobedo",city:"Monterrey",country:"Mexico"},
+  {code:"SJD",name:"Los Cabos International",city:"Los Cabos",country:"Mexico"},
+  {code:"PVR",name:"Licenciado Gustavo Diaz Ordaz",city:"Puerto Vallarta",country:"Mexico"},
+  {code:"ZIH",name:"Ixtapa-Zihuatanejo International",city:"Zihuatanejo",country:"Mexico"},
+  {code:"MZT",name:"General Rafael Buelna International",city:"Mazatlan",country:"Mexico"},
+  {code:"BOG",name:"El Dorado International",city:"Bogota",country:"Colombia"},
+  {code:"MDE",name:"Jose Maria Cordova International",city:"Medellin",country:"Colombia"},
+  {code:"CTG",name:"Rafael Nunez International",city:"Cartagena",country:"Colombia"},
+  {code:"GUA",name:"La Aurora International",city:"Guatemala City",country:"Guatemala"},
+  {code:"SAP",name:"Ramon Villeda Morales",city:"San Pedro Sula, Honduras",country:"Honduras"},
+  {code:"PTY",name:"Tocumen International",city:"Panama City",country:"Panama"},
+  {code:"SJO",name:"Juan Santamaria International",city:"San Jose, Costa Rica",country:"Costa Rica"},
+  // ── SOUTH AMERICA ──
+  {code:"GRU",name:"Sao Paulo Guarulhos International",city:"Sao Paulo",country:"Brazil"},
+  {code:"CGH",name:"Congonhas Airport",city:"Sao Paulo",country:"Brazil"},
+  {code:"GIG",name:"Rio de Janeiro Galeao International",city:"Rio de Janeiro",country:"Brazil"},
+  {code:"SDU",name:"Santos Dumont Airport",city:"Rio de Janeiro",country:"Brazil"},
+  {code:"EZE",name:"Ministro Pistarini International",city:"Buenos Aires",country:"Argentina"},
+  {code:"AEP",name:"Jorge Newbery Airfield",city:"Buenos Aires",country:"Argentina"},
+  {code:"SCL",name:"Arturo Merino Benitez International",city:"Santiago",country:"Chile"},
+  {code:"LIM",name:"Jorge Chavez International",city:"Lima",country:"Peru"},
+  {code:"UIO",name:"Mariscal Sucre International",city:"Quito",country:"Ecuador"},
+  {code:"GYE",name:"Jose Joaquin de Olmedo",city:"Guayaquil",country:"Ecuador"},
+  {code:"CCS",name:"Simon Bolivar International",city:"Caracas",country:"Venezuela"},
+  // ── UK & IRELAND ──
+  {code:"LHR",name:"Heathrow",city:"London",country:"UK"},
+  {code:"LGW",name:"Gatwick",city:"London",country:"UK"},
+  {code:"LCY",name:"London City",city:"London",country:"UK"},
+  {code:"STN",name:"Stansted",city:"London",country:"UK"},
+  {code:"LTN",name:"Luton",city:"London",country:"UK"},
+  {code:"FAB",name:"Farnborough Airport",city:"Farnborough",country:"UK"},
+  {code:"MAN",name:"Manchester Airport",city:"Manchester",country:"UK"},
+  {code:"EDI",name:"Edinburgh Airport",city:"Edinburgh",country:"UK"},
+  {code:"GLA",name:"Glasgow International",city:"Glasgow",country:"UK"},
+  {code:"BHX",name:"Birmingham Airport",city:"Birmingham",country:"UK"},
+  {code:"DUB",name:"Dublin Airport",city:"Dublin",country:"Ireland"},
+  {code:"SNN",name:"Shannon Airport",city:"Shannon",country:"Ireland"},
+  // ── WESTERN EUROPE ──
+  {code:"CDG",name:"Charles de Gaulle",city:"Paris",country:"France"},
+  {code:"ORY",name:"Paris Orly",city:"Paris",country:"France"},
+  {code:"LBG",name:"Paris Le Bourget",city:"Paris",country:"France"},
+  {code:"NCE",name:"Nice Cote d'Azur",city:"Nice",country:"France"},
+  {code:"MRS",name:"Marseille Provence",city:"Marseille",country:"France"},
+  {code:"LYS",name:"Lyon Saint-Exupery",city:"Lyon",country:"France"},
+  {code:"AMS",name:"Amsterdam Schiphol",city:"Amsterdam",country:"Netherlands"},
+  {code:"BRU",name:"Brussels Airport",city:"Brussels",country:"Belgium"},
+  {code:"FRA",name:"Frankfurt Airport",city:"Frankfurt",country:"Germany"},
+  {code:"MUC",name:"Munich Airport",city:"Munich",country:"Germany"},
+  {code:"TXL",name:"Berlin Brandenburg",city:"Berlin",country:"Germany"},
+  {code:"HAM",name:"Hamburg Airport",city:"Hamburg",country:"Germany"},
+  {code:"DUS",name:"Dusseldorf Airport",city:"Dusseldorf",country:"Germany"},
+  {code:"ZRH",name:"Zurich Airport",city:"Zurich",country:"Switzerland"},
+  {code:"GVA",name:"Geneva Airport",city:"Geneva",country:"Switzerland"},
+  {code:"VIE",name:"Vienna International",city:"Vienna",country:"Austria"},
+  {code:"SZG",name:"Salzburg Airport",city:"Salzburg",country:"Austria"},
+  {code:"MAD",name:"Adolfo Suarez Madrid-Barajas",city:"Madrid",country:"Spain"},
+  {code:"BCN",name:"Barcelona El Prat",city:"Barcelona",country:"Spain"},
+  {code:"AGP",name:"Malaga Airport",city:"Malaga",country:"Spain"},
+  {code:"PMI",name:"Palma de Mallorca Airport",city:"Mallorca",country:"Spain"},
+  {code:"IBZ",name:"Ibiza Airport",city:"Ibiza",country:"Spain"},
+  {code:"LIS",name:"Lisbon Humberto Delgado",city:"Lisbon",country:"Portugal"},
+  {code:"OPO",name:"Porto Airport",city:"Porto",country:"Portugal"},
+  {code:"FCO",name:"Rome Fiumicino",city:"Rome",country:"Italy"},
+  {code:"CIA",name:"Rome Ciampino",city:"Rome",country:"Italy"},
+  {code:"MXP",name:"Milan Malpensa",city:"Milan",country:"Italy"},
+  {code:"LIN",name:"Milan Linate",city:"Milan",country:"Italy"},
+  {code:"VCE",name:"Venice Marco Polo",city:"Venice",country:"Italy"},
+  {code:"FLR",name:"Florence Amerigo Vespucci",city:"Florence",country:"Italy"},
+  {code:"NAP",name:"Naples International",city:"Naples",country:"Italy"},
+  {code:"CPH",name:"Copenhagen Airport",city:"Copenhagen",country:"Denmark"},
+  {code:"OSL",name:"Oslo Gardermoen",city:"Oslo",country:"Norway"},
+  {code:"ARN",name:"Stockholm Arlanda",city:"Stockholm",country:"Sweden"},
+  {code:"HEL",name:"Helsinki Vantaa",city:"Helsinki",country:"Finland"},
+  // ── EASTERN EUROPE ──
+  {code:"WAW",name:"Warsaw Chopin Airport",city:"Warsaw",country:"Poland"},
+  {code:"PRG",name:"Vaclav Havel Prague",city:"Prague",country:"Czech Republic"},
+  {code:"BUD",name:"Budapest Ferenc Liszt",city:"Budapest",country:"Hungary"},
+  {code:"OTP",name:"Bucharest Henri Coanda",city:"Bucharest",country:"Romania"},
+  {code:"SOF",name:"Sofia Airport",city:"Sofia",country:"Bulgaria"},
+  {code:"ATH",name:"Athens Eleftherios Venizelos",city:"Athens",country:"Greece"},
+  {code:"SKG",name:"Thessaloniki Macedonia Airport",city:"Thessaloniki",country:"Greece"},
+  {code:"HER",name:"Heraklion Nikos Kazantzakis",city:"Crete",country:"Greece"},
+  {code:"CFU",name:"Corfu International Airport",city:"Corfu",country:"Greece"},
+  {code:"JMK",name:"Mykonos Airport",city:"Mykonos",country:"Greece"},
+  {code:"JSI",name:"Skiathos Airport",city:"Skiathos",country:"Greece"},
+  {code:"ZTH",name:"Zakynthos International",city:"Zakynthos",country:"Greece"},
+  {code:"IST",name:"Istanbul Airport",city:"Istanbul",country:"Turkey"},
+  {code:"SAW",name:"Istanbul Sabiha Gokcen",city:"Istanbul",country:"Turkey"},
+  {code:"AYT",name:"Antalya Airport",city:"Antalya",country:"Turkey"},
+  // ── MIDDLE EAST ──
+  {code:"DXB",name:"Dubai International",city:"Dubai",country:"UAE"},
+  {code:"DWC",name:"Al Maktoum International",city:"Dubai",country:"UAE"},
+  {code:"AUH",name:"Abu Dhabi International",city:"Abu Dhabi",country:"UAE"},
+  {code:"SHJ",name:"Sharjah International",city:"Sharjah",country:"UAE"},
+  {code:"DOH",name:"Hamad International",city:"Doha",country:"Qatar"},
+  {code:"BAH",name:"Bahrain International",city:"Manama",country:"Bahrain"},
+  {code:"KWI",name:"Kuwait International",city:"Kuwait City",country:"Kuwait"},
+  {code:"MCT",name:"Muscat International",city:"Muscat",country:"Oman"},
+  {code:"RUH",name:"King Khalid International",city:"Riyadh",country:"Saudi Arabia"},
+  {code:"JED",name:"King Abdulaziz International",city:"Jeddah",country:"Saudi Arabia"},
+  {code:"TLV",name:"Ben Gurion International",city:"Tel Aviv",country:"Israel"},
+  {code:"AMM",name:"Queen Alia International",city:"Amman",country:"Jordan"},
+  {code:"BEY",name:"Beirut Rafic Hariri International",city:"Beirut",country:"Lebanon"},
+  // ── AFRICA ──
+  {code:"CAI",name:"Cairo International",city:"Cairo",country:"Egypt"},
+  {code:"HRG",name:"Hurghada International",city:"Hurghada",country:"Egypt"},
+  {code:"SSH",name:"Sharm el-Sheikh International",city:"Sharm el-Sheikh",country:"Egypt"},
+  {code:"CMN",name:"Mohammed V International",city:"Casablanca",country:"Morocco"},
+  {code:"RAK",name:"Marrakesh Menara",city:"Marrakesh",country:"Morocco"},
+  {code:"TNG",name:"Ibn Batouta Airport",city:"Tangier",country:"Morocco"},
+  {code:"TUN",name:"Tunis-Carthage International",city:"Tunis",country:"Tunisia"},
+  {code:"JNB",name:"O.R. Tambo International",city:"Johannesburg",country:"South Africa"},
+  {code:"CPT",name:"Cape Town International",city:"Cape Town",country:"South Africa"},
+  {code:"DUR",name:"King Shaka International",city:"Durban",country:"South Africa"},
+  {code:"NBO",name:"Jomo Kenyatta International",city:"Nairobi",country:"Kenya"},
+  {code:"WIL",name:"Wilson Airport",city:"Nairobi",country:"Kenya"},
+  {code:"ADD",name:"Bole International",city:"Addis Ababa",country:"Ethiopia"},
+  {code:"LOS",name:"Murtala Muhammed International",city:"Lagos",country:"Nigeria"},
+  {code:"ABV",name:"Nnamdi Azikiwe International",city:"Abuja",country:"Nigeria"},
+  {code:"ACC",name:"Kotoka International",city:"Accra",country:"Ghana"},
+  {code:"DAK",name:"Blaise Diagne International",city:"Dakar",country:"Senegal"},
+  {code:"TNR",name:"Ivato International",city:"Antananarivo",country:"Madagascar"},
+  {code:"MRU",name:"Sir Seewoosagur Ramgoolam",city:"Mauritius",country:"Mauritius"},
+  {code:"SEZ",name:"Seychelles International",city:"Mahe",country:"Seychelles"},
+  // ── ASIA PACIFIC ──
+  {code:"HKG",name:"Hong Kong International",city:"Hong Kong",country:"Hong Kong"},
+  {code:"SIN",name:"Singapore Changi",city:"Singapore",country:"Singapore"},
+  {code:"BKK",name:"Suvarnabhumi Airport",city:"Bangkok",country:"Thailand"},
+  {code:"DMK",name:"Don Mueang International",city:"Bangkok",country:"Thailand"},
+  {code:"HKT",name:"Phuket International",city:"Phuket",country:"Thailand"},
+  {code:"CNX",name:"Chiang Mai International",city:"Chiang Mai",country:"Thailand"},
+  {code:"KUL",name:"Kuala Lumpur International",city:"Kuala Lumpur",country:"Malaysia"},
+  {code:"CGK",name:"Soekarno-Hatta International",city:"Jakarta",country:"Indonesia"},
+  {code:"DPS",name:"Ngurah Rai International",city:"Bali",country:"Indonesia"},
+  {code:"MNL",name:"Ninoy Aquino International",city:"Manila",country:"Philippines"},
+  {code:"CEB",name:"Mactan-Cebu International",city:"Cebu",country:"Philippines"},
+  {code:"SGN",name:"Tan Son Nhat International",city:"Ho Chi Minh City",country:"Vietnam"},
+  {code:"HAN",name:"Noi Bai International",city:"Hanoi",country:"Vietnam"},
+  {code:"DAD",name:"Da Nang International",city:"Da Nang",country:"Vietnam"},
+  {code:"REP",name:"Siem Reap International",city:"Siem Reap",country:"Cambodia"},
+  {code:"PNH",name:"Phnom Penh International",city:"Phnom Penh",country:"Cambodia"},
+  {code:"RGN",name:"Yangon International",city:"Yangon",country:"Myanmar"},
+  {code:"PEK",name:"Beijing Capital International",city:"Beijing",country:"China"},
+  {code:"PKX",name:"Beijing Daxing International",city:"Beijing",country:"China"},
+  {code:"PVG",name:"Shanghai Pudong International",city:"Shanghai",country:"China"},
+  {code:"SHA",name:"Shanghai Hongqiao",city:"Shanghai",country:"China"},
+  {code:"CAN",name:"Guangzhou Baiyun International",city:"Guangzhou",country:"China"},
+  {code:"SZX",name:"Shenzhen Bao'an International",city:"Shenzhen",country:"China"},
+  {code:"CTU",name:"Chengdu Tianfu International",city:"Chengdu",country:"China"},
+  {code:"NRT",name:"Tokyo Narita International",city:"Tokyo",country:"Japan"},
+  {code:"HND",name:"Tokyo Haneda",city:"Tokyo",country:"Japan"},
+  {code:"KIX",name:"Osaka Kansai International",city:"Osaka",country:"Japan"},
+  {code:"ITM",name:"Osaka Itami",city:"Osaka",country:"Japan"},
+  {code:"NGO",name:"Chubu Centrair International",city:"Nagoya",country:"Japan"},
+  {code:"CTS",name:"New Chitose Airport",city:"Sapporo",country:"Japan"},
+  {code:"OKA",name:"Naha Airport",city:"Okinawa",country:"Japan"},
+  {code:"ICN",name:"Incheon International",city:"Seoul",country:"South Korea"},
+  {code:"GMP",name:"Gimpo International",city:"Seoul",country:"South Korea"},
+  {code:"PUS",name:"Gimhae International",city:"Busan",country:"South Korea"},
+  {code:"TPE",name:"Taoyuan International",city:"Taipei",country:"Taiwan"},
+  {code:"TSA",name:"Taipei Songshan",city:"Taipei",country:"Taiwan"},
+  {code:"MFM",name:"Macau International",city:"Macau",country:"Macau"},
+  {code:"DEL",name:"Indira Gandhi International",city:"New Delhi",country:"India"},
+  {code:"BOM",name:"Chhatrapati Shivaji Maharaj",city:"Mumbai",country:"India"},
+  {code:"BLR",name:"Kempegowda International",city:"Bangalore",country:"India"},
+  {code:"MAA",name:"Chennai International",city:"Chennai",country:"India"},
+  {code:"CCU",name:"Netaji Subhas Chandra Bose",city:"Kolkata",country:"India"},
+  {code:"HYD",name:"Rajiv Gandhi International",city:"Hyderabad",country:"India"},
+  {code:"COK",name:"Cochin International",city:"Kochi",country:"India"},
+  {code:"GOI",name:"Dabolim Airport",city:"Goa",country:"India"},
+  {code:"AMD",name:"Sardar Vallabhbhai Patel",city:"Ahmedabad",country:"India"},
+  {code:"KTM",name:"Tribhuvan International",city:"Kathmandu",country:"Nepal"},
+  {code:"CMB",name:"Bandaranaike International",city:"Colombo",country:"Sri Lanka"},
+  {code:"DAC",name:"Hazrat Shahjalal International",city:"Dhaka",country:"Bangladesh"},
+  {code:"KHI",name:"Jinnah International",city:"Karachi",country:"Pakistan"},
+  {code:"LHE",name:"Allama Iqbal International",city:"Lahore",country:"Pakistan"},
+  {code:"ISB",name:"Islamabad International",city:"Islamabad",country:"Pakistan"},
+  // ── AUSTRALIA & NEW ZEALAND ──
+  {code:"SYD",name:"Sydney Kingsford Smith",city:"Sydney",country:"Australia"},
+  {code:"MEL",name:"Melbourne Airport",city:"Melbourne",country:"Australia"},
+  {code:"BNE",name:"Brisbane Airport",city:"Brisbane",country:"Australia"},
+  {code:"PER",name:"Perth Airport",city:"Perth",country:"Australia"},
+  {code:"ADL",name:"Adelaide Airport",city:"Adelaide",country:"Australia"},
+  {code:"DRW",name:"Darwin International",city:"Darwin",country:"Australia"},
+  {code:"CNS",name:"Cairns Airport",city:"Cairns",country:"Australia"},
+  {code:"OOL",name:"Gold Coast Airport",city:"Gold Coast",country:"Australia"},
+  {code:"AKL",name:"Auckland Airport",city:"Auckland",country:"New Zealand"},
+  {code:"CHC",name:"Christchurch International",city:"Christchurch",country:"New Zealand"},
+  {code:"WLG",name:"Wellington International",city:"Wellington",country:"New Zealand"},
+  {code:"ZQN",name:"Queenstown Airport",city:"Queenstown",country:"New Zealand"},
+  {code:"NAN",name:"Nadi International",city:"Nadi",country:"Fiji"},
+  {code:"PPT",name:"Tahiti Faaa International",city:"Papeete",country:"French Polynesia"},
+  {code:"APW",name:"Faleolo International",city:"Apia",country:"Samoa"},
+];
+
+function airportSearch(input, dropId) {
+  const q = input.value.toLowerCase().trim();
+  const drop = document.getElementById(dropId);
+  if (!q || q.length < 1) { drop.style.display = 'none'; return; }
+  const matches = AIRPORTS.filter(a =>
+    a.code.toLowerCase().startsWith(q) ||
+    a.name.toLowerCase().includes(q) ||
+    a.city.toLowerCase().includes(q)
+  ).slice(0, 8);
+  if (!matches.length) { drop.style.display = 'none'; return; }
+  drop.innerHTML = matches.map(a =>
+    `<div class="airport-option" onmousedown="selectAirport('${input.id}','${dropId}','${a.code}','${a.name.replace(/'/g,'')}','${a.city.replace(/'/g,'')}')">
+      <div><span class="airport-code">${a.code}</span><span class="airport-name">${a.name}</span></div>
+      <div class="airport-city">${a.city}</div>
+    </div>`).join('');
+  drop.style.display = 'block';
+}
+
+function selectAirport(inputId, dropId, code, name, city) {
+  document.getElementById(inputId).value = code + ' — ' + name;
+  hideDropdown(dropId);
+}
+
+function hideDropdown(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = 'none';
+}
+
+function swapAirports() {
+  const from = document.getElementById('req-from');
+  const to = document.getElementById('req-to');
+  const tmp = from.value;
+  from.value = to.value;
+  to.value = tmp;
+}
+
+// ══ MINORS TOGGLE ══
+let minorsOn = false;
+function toggleMinors() {
+  minorsOn = !minorsOn;
+  document.getElementById('minor-track').style.background = minorsOn ? 'var(--gold2)' : 'var(--border2)';
+  document.getElementById('minor-thumb').style.left = minorsOn ? '21px' : '3px';
+  document.getElementById('minor-toggle-label').textContent = minorsOn ? 'Yes' : 'No';
+  document.getElementById('minors-fields').style.display = minorsOn ? 'block' : 'none';
+}
+
+function checkUnaccompanied() {
+  const val = document.getElementById('req-minors-accompanied').value;
+  document.getElementById('unaccompanied-notice').style.display = val === 'no' ? 'block' : 'none';
+}
+
+// ══ PREFERENCES ══
+const activePrefs = new Set();
+const prefDetails = {
+  catering: 'catering-detail',
+  transport: 'transport-detail',
+  pet: 'pet-detail',
+  luggage: 'luggage-detail'
+};
+
+function togglePref(key) {
+  const chip = document.getElementById('pref-' + key);
+  if (activePrefs.has(key)) {
+    activePrefs.delete(key);
+    chip.classList.remove('selected');
+    if (prefDetails[key]) document.getElementById(prefDetails[key]).style.display = 'none';
+  } else {
+    activePrefs.add(key);
+    chip.classList.add('selected');
+    if (prefDetails[key]) document.getElementById(prefDetails[key]).style.display = 'block';
+  }
+}
+
+
+// ══ TRIP TYPE ══
+let currentTripType = 'oneway';
+function setTripType(type) {
+  currentTripType = type;
+  ['oneway','return','multistop'].forEach(t => {
+    const btn = document.getElementById('tt-' + t);
+    if (t === type) {
+      btn.style.borderColor = 'var(--gold2)';
+      btn.style.background = 'rgba(229,168,60,0.1)';
+      btn.style.color = 'var(--gold2)';
+    } else {
+      btn.style.borderColor = 'var(--border)';
+      btn.style.background = 'transparent';
+      btn.style.color = 'var(--text3)';
+    }
+  });
+  document.getElementById('return-date-row').style.display = type === 'return' ? 'block' : 'none';
+  document.getElementById('multistop-row').style.display = type === 'multistop' ? 'block' : 'none';
+}
+
+function addLeg() {
+  const container = document.getElementById('extra-legs');
+  const count = container.querySelectorAll('.extra-leg').length + 2;
+  const fromId = 'leg-' + count + '-from';
+  const toId = 'leg-' + count + '-to';
+  const fromDropId = fromId + '-drop';
+  const toDropId = toId + '-drop';
+  const div = document.createElement('div');
+  div.className = 'extra-leg';
+  div.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px';
+  div.innerHTML =
+    '<div style="position:relative"><div class="field-label">Stop ' + count + ' — From</div>' +
+    '<input class="field-input" id="' + fromId + '" placeholder="Type city or airport code..." autocomplete="off" style="font-size:13px">' +
+    '<div id="' + fromDropId + '" class="airport-dropdown" style="display:none"></div></div>' +
+    '<div style="position:relative"><div class="field-label">Stop ' + count + ' — To</div>' +
+    '<input class="field-input" id="' + toId + '" placeholder="Type city or airport code..." autocomplete="off" style="font-size:13px">' +
+    '<div id="' + toDropId + '" class="airport-dropdown" style="display:none"></div></div>' +
+    '<div><div class="field-label">Date</div><input class="field-input" type="date" style="font-size:13px"></div>';
+  // Wire up airport search after adding to DOM
+  const fromInput = div.querySelector('#' + fromId);
+  const toInput = div.querySelector('#' + toId);
+  if (fromInput) {
+    fromInput.addEventListener('input', function() { airportSearch(this, fromDropId); });
+    fromInput.addEventListener('blur', function() { setTimeout(() => hideDropdown(fromDropId), 200); });
+  }
+  if (toInput) {
+    toInput.addEventListener('input', function() { airportSearch(this, toDropId); });
+    toInput.addEventListener('blur', function() { setTimeout(() => hideDropdown(toDropId), 200); });
+  }
+  container.appendChild(div);
+}
+
+
+// ══ PASSENGER MANIFEST ══
+let manifestBookingId = null;
+let manifestPaxCount = 1;
+let manifestIsIntl = false;
+let currentPaxTab = 0;
+
+function openManifest(bookingId, paxCount, isInternational) {
+  manifestBookingId = bookingId;
+  manifestPaxCount = paxCount || 1;
+  manifestIsIntl = isInternational || false;
+
+  if (manifestIsIntl) {
+    document.getElementById('intl-notice').style.display = 'block';
+  }
+
+  buildManifestForms();
+  document.getElementById('manifest-modal').classList.add('show');
+}
+
+function buildManifestForms() {
+  const tabsEl = document.getElementById('manifest-pax-tabs');
+  const formsEl = document.getElementById('manifest-pax-forms');
+  tabsEl.innerHTML = '';
+  formsEl.innerHTML = '';
+
+  for (let i = 0; i < manifestPaxCount; i++) {
+    // Tab
+    const tab = document.createElement('button');
+    tab.id = `ptab-${i}`;
+    tab.textContent = i === 0 ? '👤 Passenger 1 (Lead)' : `👤 Passenger ${i + 1}`;
+    tab.style.cssText = `height:36px;padding:0 14px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;border:1.5px solid ${i === 0 ? 'var(--gold2)' : 'var(--border)'};background:${i === 0 ? 'rgba(229,168,60,0.1)' : 'transparent'};color:${i === 0 ? 'var(--gold2)' : 'var(--text3)'}`;
+    tab.onclick = () => switchPaxTab(i);
+    tabsEl.appendChild(tab);
+
+    // Form
+    const form = document.createElement('div');
+    form.id = `pform-${i}`;
+    form.style.display = i === 0 ? 'block' : 'none';
+    form.innerHTML = buildPaxForm(i);
+    formsEl.appendChild(form);
+  }
+  currentPaxTab = 0;
+}
+
+function buildPaxForm(idx) {
+  const isLead = idx === 0;
+  const headerHtml = isLead
+    ? '<div style="font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--gold2);margin-bottom:14px">Lead Passenger &bull; Booking Contact</div>'
+    : '<div style="font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);margin-bottom:14px">Passenger ' + (idx + 1) + '</div>';
+
+  const intlHtml = manifestIsIntl ? (
+    '<div style="background:rgba(88,166,255,0.05);border:1px solid rgba(88,166,255,0.2);border-radius:12px;padding:14px;margin-top:4px">' +
+    '<div style="font-size:11px;font-weight:700;color:#58A6FF;margin-bottom:12px">&#127757; Passport Details (International Flight)</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">' +
+    '<div><div class="field-label">Passport Number <span class="field-required">Required</span></div>' +
+    '<input class="field-input" id="pax-' + idx + '-passport" placeholder="Passport #" style="font-family:monospace;font-size:14px"></div>' +
+    '<div><div class="field-label">Passport Country</div>' +
+    '<input class="field-input" id="pax-' + idx + '-passport-country" placeholder="Issuing country"></div>' +
+    '<div><div class="field-label">Passport Expiry <span class="field-required">Required</span></div>' +
+    '<input class="field-input" type="date" id="pax-' + idx + '-passport-expiry"></div>' +
+    '</div></div>'
+  ) : '';
+
+  const phoneHtml = isLead ? (
+    '<div style="margin-top:12px">' +
+    '<div class="field-label">Mobile Phone (for flight updates)</div>' +
+    '<input class="field-input" type="tel" id="pax-' + idx + '-phone" placeholder="+1 (305) 000-0000"></div>'
+  ) : '';
+
+  return '<div style="background:var(--bg3);border:1px solid var(--border2);border-radius:14px;padding:18px;margin-bottom:4px">' +
+    headerHtml +
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">' +
+      '<div><div class="field-label">First Name <span class="field-required">Required</span></div>' +
+      '<input class="field-input" id="pax-' + idx + '-first" placeholder="Legal first name" style="font-size:14px"></div>' +
+      '<div><div class="field-label">Middle Name</div>' +
+      '<input class="field-input" id="pax-' + idx + '-middle" placeholder="If on ID" style="font-size:14px"></div>' +
+      '<div><div class="field-label">Last Name <span class="field-required">Required</span></div>' +
+      '<input class="field-input" id="pax-' + idx + '-last" placeholder="Legal last name" style="font-size:14px"></div>' +
+    '</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">' +
+      '<div><div class="field-label">Date of Birth <span class="field-required">Required</span></div>' +
+      '<input class="field-input" type="date" id="pax-' + idx + '-dob"></div>' +
+      '<div><div class="field-label">Gender</div>' +
+      '<select class="field-select" id="pax-' + idx + '-gender">' +
+      '<option value="">Prefer not to say</option>' +
+      '<option value="M">Male</option>' +
+      '<option value="F">Female</option>' +
+      '<option value="X">Non-binary / Other</option>' +
+      '</select></div>' +
+    '</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">' +
+      '<div><div class="field-label">Government ID Type <span class="field-required">Required</span></div>' +
+      '<select class="field-select" id="pax-' + idx + '-id-type">' +
+      '<option value="dl">Drivers License</option>' +
+      '<option value="passport">Passport</option>' +
+      '<option value="state_id">State ID</option>' +
+      '<option value="military">Military ID</option>' +
+      '</select></div>' +
+      '<div><div class="field-label">ID Number <span class="field-required">Required</span></div>' +
+      '<input class="field-input" id="pax-' + idx + '-id-num" placeholder="ID number" style="font-family:monospace;font-size:14px"></div>' +
+    '</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">' +
+      '<div><div class="field-label">ID Issuing State / Country</div>' +
+      '<input class="field-input" id="pax-' + idx + '-id-state" placeholder="e.g. Florida, USA"></div>' +
+      '<div><div class="field-label">ID Expiry Date</div>' +
+      '<input class="field-input" type="date" id="pax-' + idx + '-id-expiry"></div>' +
+    '</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">' +
+      '<div><div class="field-label">TSA PreCheck / KTN</div>' +
+      '<input class="field-input" id="pax-' + idx + '-tsa" placeholder="Known Traveler Number" style="font-family:monospace;font-size:14px">' +
+      '<div style="font-size:10px;color:var(--text3);margin-top:4px">Optional</div></div>' +
+      '<div><div class="field-label">Nationality</div>' +
+      '<input class="field-input" id="pax-' + idx + '-nationality" placeholder="e.g. American, British"></div>' +
+    '</div>' +
+    intlHtml +
+    phoneHtml +
+    '<div style="margin-top:12px">' +
+      '<div class="field-label">Special Requirements / Medical Notes</div>' +
+      '<input class="field-input" id="pax-' + idx + '-special" placeholder="Wheelchair, oxygen, medication, allergies...">' +
+    '</div>' +
+  '</div>';
+}
+
+function switchPaxTab(idx) {
+  for (let i = 0; i < manifestPaxCount; i++) {
+    const tab = document.getElementById(`ptab-${i}`);
+    const form = document.getElementById(`pform-${i}`);
+    if (tab) {
+      tab.style.borderColor = i === idx ? 'var(--gold2)' : 'var(--border)';
+      tab.style.background = i === idx ? 'rgba(229,168,60,0.1)' : 'transparent';
+      tab.style.color = i === idx ? 'var(--gold2)' : 'var(--text3)';
+    }
+    if (form) form.style.display = i === idx ? 'block' : 'none';
+  }
+  currentPaxTab = idx;
+}
+
+function checkIdType(idx) {
+  // Could expand later to show/hide passport fields based on selection
+}
+
+function closeManifest() {
+  document.getElementById('manifest-modal').classList.remove('show');
+}
+
+async function submitManifest() {
+  // Validate lead passenger at minimum
+  const first = document.getElementById('pax-0-first')?.value?.trim();
+  const last = document.getElementById('pax-0-last')?.value?.trim();
+  const dob = document.getElementById('pax-0-dob')?.value;
+  const idNum = document.getElementById('pax-0-id-num')?.value?.trim();
+
+  if (!first || !last || !dob || !idNum) {
+    showToast('error', '✕', 'Missing required fields', 'Please complete at least the lead passenger details.');
+    return;
+  }
+
+  const btn = document.getElementById('manifest-submit-btn');
+  btn.classList.add('loading');
+  btn.textContent = 'Submitting manifest...';
+
+  try {
+    // Build manifest data for all passengers
+    const passengers = [];
+    for (let i = 0; i < manifestPaxCount; i++) {
+      passengers.push({
+        index: i + 1,
+        first_name: document.getElementById(`pax-${i}-first`)?.value?.trim() || '',
+        middle_name: document.getElementById(`pax-${i}-middle`)?.value?.trim() || '',
+        last_name: document.getElementById(`pax-${i}-last`)?.value?.trim() || '',
+        dob: document.getElementById(`pax-${i}-dob`)?.value || '',
+        gender: document.getElementById(`pax-${i}-gender`)?.value || '',
+        id_type: document.getElementById(`pax-${i}-id-type`)?.value || '',
+        id_number: document.getElementById(`pax-${i}-id-num`)?.value?.trim() || '',
+        id_state: document.getElementById(`pax-${i}-id-state`)?.value?.trim() || '',
+        id_expiry: document.getElementById(`pax-${i}-id-expiry`)?.value || '',
+        tsa_precheck: document.getElementById(`pax-${i}-tsa`)?.value?.trim() || '',
+        nationality: document.getElementById(`pax-${i}-nationality`)?.value?.trim() || '',
+        passport_number: document.getElementById(`pax-${i}-passport`)?.value?.trim() || '',
+        passport_country: document.getElementById(`pax-${i}-passport-country`)?.value?.trim() || '',
+        passport_expiry: document.getElementById(`pax-${i}-passport-expiry`)?.value || '',
+        phone: document.getElementById(`pax-${i}-phone`)?.value?.trim() || '',
+        special_requirements: document.getElementById(`pax-${i}-special`)?.value?.trim() || ''
+      });
+    }
+
+    // Save manifest to bookings table as JSON
+    if (manifestBookingId) {
+      await sb.update('bookings',
+        { passenger_manifest: JSON.stringify(passengers), status: 'manifest_complete' },
+        `?id=eq.${manifestBookingId}`
+      );
+    }
+
+    btn.classList.remove('loading');
+    closeManifest();
+    showToast('success', '✓', 'Manifest submitted', `${manifestPaxCount} passenger${manifestPaxCount > 1 ? 's' : ''} confirmed. Booking complete.`);
+    if (currentClient) loadClientRequests(currentClient.id);
+
+  } catch (err) {
+    btn.classList.remove('loading');
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M2 8l4 4 8-8"/></svg> Confirm Booking & Submit Manifest';
+    showToast('error', '✕', 'Could not submit manifest', err.message);
+  }
+}
+
+
+
+// Init
+document.addEventListener('DOMContentLoaded', function() {
+  try {
+    // Set default date to tomorrow
+    const d = new Date(); d.setDate(d.getDate() + 1);
+    const rd = document.getElementById('req-date');
+    if (rd) rd.value = d.toISOString().split('T')[0];
+
+    // Clear any stale session to avoid null errors on fresh load
+    const sess = auth.load();
+    if (sess) {
+      try {
+        const savedCl = localStorage.getItem('aa_client');
+        if (savedCl) {
+          currentClient = JSON.parse(savedCl);
+          loadClientDashboard(currentClient);
+        }
+      } catch(e) {
+        localStorage.removeItem('aa_client');
+        auth.clear();
+      }
+    }
+  } catch(e) {
+    console.warn('Init error:', e);
+  }
+});</script>
 </body>
 </html>

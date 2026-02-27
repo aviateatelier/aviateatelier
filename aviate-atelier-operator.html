@@ -4,53 +4,44 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Aviate Atelier — Operator Portal</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">async function sendPilotRequest() {
-  var dep  = (document.getElementById('prm-dep').value || '').trim().toUpperCase() || 'OPF';
-  var arr  = (document.getElementById('prm-arr').value || '').trim().toUpperCase() || 'TEB';
-  var date = document.getElementById('prm-date').value;
-  var days = parseInt(document.getElementById('prm-days').value) || 1;
-  var rate = parseFloat(document.getElementById('prm-rate').value);
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">async function sendPilotRequest(){
+  var dep  = (document.getElementById('prm-dep')?.value || '').trim().toUpperCase() || 'OPF';
+  var arr  = (document.getElementById('prm-arr')?.value || '').trim().toUpperCase() || 'TEB';
+  var date = document.getElementById('prm-date')?.value || new Date().toISOString().split('T')[0];
+  var days = parseInt(document.getElementById('prm-days')?.value) || 1;
+  var rate = parseFloat(document.getElementById('prm-rate')?.value) || 0;
   var name = _reqPilot ? _reqPilot.name : 'Pilot';
 
-  if (!date) { alert('Please select a departure date.'); return; }
+  closePilotModal();
 
-  // If we have a real operator record and pilot lookup, insert into Supabase
-  if (typeof _sb !== 'undefined' && _opRecord) {
-    // Look up real pilot by name (in production this would use pilot UUID directly)
-    var { data: pilots } = await _sb.from('pilots')
-      .select('id')
-      .ilike('first_name', (_reqPilot ? _reqPilot.name.split(' ')[0] : ''))
-      .limit(1);
-
-    var pilotDbId = pilots && pilots.length > 0 ? pilots[0].id : null;
-
-    if (pilotDbId) {
-      var expiresAt = new Date(Date.now() + 45000).toISOString();
-      var { error } = await _sb.from('pilot_requests').insert({
-        operator_id: _opRecord.id,
-        pilot_id: pilotDbId,
-        dep_airport: dep,
-        arr_airport: arr,
-        departure_date: date,
-        days: days,
-        aircraft_type: _reqPilot ? _reqPilot.types[0] : null,
-        offered_rate: rate,
-        status: 'pending',
-        expires_at: expiresAt
+  if (_opRecord && _reqPilot) {
+    _sb.from('pilots').select('id').ilike('first_name', (_reqPilot.name || '').split(' ')[0]).limit(1)
+      .then(function(res) {
+        var pilotId = res.data && res.data.length > 0 ? res.data[0].id : null;
+        if (pilotId) {
+          _sb.from('pilot_requests').insert({
+            operator_id: _opRecord.id,
+            pilot_id: pilotId,
+            dep_airport: dep,
+            arr_airport: arr,
+            departure_date: date,
+            days: days,
+            offered_rate: rate,
+            status: 'pending',
+            expires_at: new Date(Date.now() + 45000).toISOString()
+          }).then(function(r) {
+            if (r.error) console.warn('Pilot request:', r.error.message);
+          });
+        }
       });
-      if (error) { console.warn('Pilot request error:', error.message); }
-      else {
-        closePilotModal();
-        if (typeof showToast === 'function') showToast('success', '✓ Request Sent Live', name + ' will receive instant notification · ' + dep + ' → ' + arr);
-        if (typeof logActivity === 'function') logActivity('team', 'Live pilot request sent to ' + name + ' · $' + rate + '/day');
-        return;
-      }
-    }
   }
 
-  // Fallback for demo mode
-  closePilotModal();
-  if (typeof showToast === 'function') showToast('success', '὎1 Request Sent', name + ' notified · ' + dep + ' → ' + arr + ' · $' + rate + '/day');
+  if (typeof showToast === 'function') {
+    showToast('success', '📡', 'Request Sent to ' + name, dep + ' → ' + arr + ' · $' + rate + '/day · Pilot notified');
+  }
+  if (typeof logActivity === 'function') {
+    logActivity('team', 'Pilot request sent to ' + name + ' · ' + dep + ' → ' + arr);
+  }
 }
 </script>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -4243,19 +4234,7 @@ function updatePilotOffer() {
   var lbl = 'Total cost (' + days + ' day' + (days > 1 ? 's' : '') + ')';
   document.getElementById('prm-total-strip').children[0].textContent = lbl;
 }
-async function sendPilotRequest() {
-  var dep = document.getElementById('prm-dep').value || 'TBD';
-  var arr = document.getElementById('prm-arr').value || 'TBD';
-  var rate = parseFloat(document.getElementById('prm-rate').value) || 0;
-  var days = parseInt(document.getElementById('prm-days').value) || 1;
-  var date = document.getElementById('prm-date').value || new Date().toISOString().split('T')[0];
-  var name = _reqPilot ? _reqPilot.name : 'Pilot';
-  closePilotModal();
-  var ok = await submitPilotRequest(_reqPilot ? _reqPilot.id : null, { dep: dep, arr: arr, rate: rate, days: days, date: date });
-  if (typeof showToast === 'function') {
-    showToast('success', ok ? '📡' : '📡', 'Request Sent to ' + name, dep + ' → ' + arr + ' · $' + rate + '/day · Pilot notified');
-  }
-}
+
 
 </script>
 </body>

@@ -814,25 +814,35 @@ function updateProfileUI(p) {
 // ═══ AUTH FLOW ═══
 var _pilotUser = null;
 
-async function pilotLogin() {
+async function pilotLogin(){
   var email = document.getElementById('pilot-login-email').value.trim();
-  var pass = document.getElementById('pilot-login-pass').value;
+  var pass  = document.getElementById('pilot-login-pass').value;
   var errEl = document.getElementById('pilot-login-error');
-  var btn = document.getElementById('pilot-login-btn');
+  var btn   = document.getElementById('pilot-login-btn');
   if (!email || !pass) { errEl.textContent = 'Enter your email and password.'; errEl.style.display = 'block'; return; }
   btn.textContent = 'Signing in...'; btn.disabled = true; errEl.style.display = 'none';
-  try {
-    var session = await auth.signIn(email, pass);
-    auth.save(session);
-    var pilots = await sb.select('pilots', '?email=eq.' + encodeURIComponent(email));
-    if (!pilots || !pilots.length) throw new Error('No pilot profile found. Please register first.');
-    _pilotUser = pilots[0];
-    localStorage.setItem('aa_pilot', JSON.stringify(_pilotUser));
-    showPilotDashboard(_pilotUser);
-  } catch(e) {
+  _sb.auth.signInWithPassword({ email: email, password: pass }).then(function(res) {
+    if (res.error) {
+      btn.textContent = 'Sign In'; btn.disabled = false;
+      errEl.textContent = res.error.message; errEl.style.display = 'block';
+      return;
+    }
+    return _sb.from('pilots').select('*').eq('user_id', res.data.user.id).single();
+  }).then(function(res) {
+    if (!res || !res.data) {
+      btn.textContent = 'Sign In'; btn.disabled = false;
+      errEl.textContent = 'No pilot profile found. Please register first.'; errEl.style.display = 'block';
+      return;
+    }
+    _pilotRecord = res.data;
+    _pilotUser = res.data;
+    updatePilotUI(res.data);
+    subscribeToRequests(res.data.id);
+    showPilotDashboard(res.data);
+  }).catch(function(e) {
     btn.textContent = 'Sign In'; btn.disabled = false;
     errEl.textContent = e.message; errEl.style.display = 'block';
-  }
+  });
 }
 
 async function pilotRegister() {
@@ -890,10 +900,10 @@ window.addEventListener('DOMContentLoaded', function() {
   }
 });
 
-function pilotSignOut() {
-  auth.clear();
-  localStorage.removeItem('aa_pilot');
-  if (_realtimeWS) { try{ _realtimeWS.close(); } catch(e){} }
+function pilotSignOut(){
+  _sb.auth.signOut();
+  _pilotRecord = null; _pilotUser = null;
+  if (typeof _realtimeChannel !== 'undefined' && _realtimeChannel) { try { _sb.removeChannel(_realtimeChannel); } catch(e){} }
   document.getElementById('auth-screen').style.display = 'flex';
   document.getElementById('app-shell').style.display = 'none';
 }
