@@ -1665,25 +1665,16 @@ function goStep(n) {
   currentStep = n;
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
-  // Auto-check all agreement boxes and enable sign button when reaching step 4
+  // Reset agreement boxes when navigating to step 4
   if (n === 4) {
-    setTimeout(function() {
-      ['c1','c2','c3','c4'].forEach(function(id) {
-        var el = document.getElementById(id);
-        if (el && !el.classList.contains('checked')) {
-          el.classList.add('checked');
-        }
-      });
-      var sigName = document.getElementById('sig-name');
-      var company = document.getElementById('f-company');
-      if (sigName && company && !sigName.value) {
-        sigName.value = company.value || 'Authorized Signatory';
-      }
-      var checksDiv = document.getElementById('agreement-checks');
-      if (checksDiv) checksDiv.style.opacity = '1';
-      var signBtn = document.getElementById('sign-btn');
-      if (signBtn) signBtn.disabled = false;
-    }, 300);
+    ['c1','c2','c3','c4'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.classList.remove('checked');
+    });
+    var checksDiv = document.getElementById('agreement-checks');
+    if (checksDiv) checksDiv.style.opacity = '0.4';
+    var signBtn = document.getElementById('sign-btn');
+    if (signBtn) signBtn.disabled = true;
   }
 }
 
@@ -1733,10 +1724,18 @@ function checkScroll() {
 }
 
 function toggleCheck(id) {
-  if (!osaScrolled) { document.getElementById('osa-scroll').scrollBy({ top: 200, behavior: 'smooth' }); return; }
-  checks[id] = !checks[id];
-  document.getElementById(id).classList.toggle('checked', checks[id]);
-  checkSigReady();
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.classList.toggle('checked');
+  // Enable sign button only when all 4 boxes checked
+  var allChecked = ['c1','c2','c3','c4'].every(function(c) {
+    var box = document.getElementById(c);
+    return box && box.classList.contains('checked');
+  });
+  var checksDiv = document.getElementById('agreement-checks');
+  if (checksDiv) checksDiv.style.opacity = allChecked ? '1' : '0.6';
+  var signBtn = document.getElementById('sign-btn');
+  if (signBtn) signBtn.disabled = !allChecked;
 }
 
 function checkSigReady() {
