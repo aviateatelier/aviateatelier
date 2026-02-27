@@ -371,7 +371,7 @@ body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--t
       <div class="field-row" style="margin-bottom:16px">
         <div class="field-group" style="margin-bottom:0">
           <div class="field-label">First Name <span class="field-required">Required</span></div>
-          <input class="field-input" id="cl-first" placeholder="James">
+          <input class="field-input" id="cl-first" placeholder="First Name">
         </div>
         <div class="field-group" style="margin-bottom:0">
           <div class="field-label">Last Name <span class="field-required">Required</span></div>
@@ -380,7 +380,7 @@ body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--t
       </div>
       <div class="field-group">
         <div class="field-label">Email Address <span class="field-required">Required</span></div>
-        <input class="field-input" type="email" id="cl-email" placeholder="james@company.com">
+        <input class="field-input" type="email" id="cl-email" placeholder="your@email.com">
       </div>
       <div class="field-group">
         <div class="field-label">Phone Number</div>
@@ -1018,6 +1018,7 @@ function loadDashboard(operator) {
 
 // ══ LOAD CLIENT DASHBOARD ══
 function loadClientDashboard(client) {
+  currentClient = client; // sync with Supabase auth
   const dashName = document.getElementById('cl-dash-name');
   const navStatus = document.getElementById('nav-status');
   const navUserName = document.getElementById('nav-user-name');
