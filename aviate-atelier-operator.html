@@ -225,7 +225,7 @@ body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--t
 @keyframes successPop { from{opacity:0;transform:scale(0.5)} to{opacity:1;transform:scale(1)} }
 
 /* DASHBOARD */
-.dashboard-wrap { display: grid; grid-template-columns: 220px 1fr; min-height: calc(100vh - 60px); }
+.dashboard-wrap { display: grid; grid-template-columns: 210px 1fr; min-height: calc(100vh - 60px); }
 .sidebar { background: var(--bg2); border-right: 1px solid var(--border); padding: 20px 0; position: sticky; top: 60px; height: calc(100vh - 60px); overflow-y: auto; }
 .sidebar-company { padding: 0 18px 16px; border-bottom: 1px solid var(--border); margin-bottom: 12px; }
 .sidebar-company-name { font-size: 14px; font-weight: 700; color: var(--text); }
@@ -395,11 +395,7 @@ body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--t
         <button onclick="showView('view-operator-login')" style="background:none;border:none;color:#E5A83C;cursor:pointer;font-size:13px;font-weight:700;padding:0 4px">Operator Sign In</button>
       </div>
       <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.07)">
-        <button onclick="loadDemoMode()" style="width:100%;height:42px;border-radius:11px;border:1.5px solid rgba(229,168,60,0.3);background:rgba(229,168,60,0.06);color:#E5A83C;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px" onmouseover="this.style.background='rgba(229,168,60,0.12)'" onmouseout="this.style.background='rgba(229,168,60,0.06)'">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 2l5 5-5 5"/></svg>
-          Preview Dashboard &mdash; No Sign In Required
-        </button>
-        <div style="font-size:10px;color:#3D4450;text-align:center;margin-top:7px;letter-spacing:.04em">Sample data &middot; Not connected to a live account</div>
+        
       </div>
     </div>
   </div>
@@ -1020,11 +1016,7 @@ body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--t
           <div style="font-size:12px;color:var(--text3);padding:24px 0;text-align:center;grid-column:1/-1">No aircraft registered yet</div>
         </div>
 
-        <!-- Demo seed for prototype -->
-        <div style="margin-top:16px;text-align:center">
-          <button onclick="seedDemoFleet()" style="height:34px;padding:0 16px;border:1px dashed var(--border2);background:transparent;border-radius:9px;color:var(--text3);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer">Load Demo Fleet</button>
-        </div>
-      </div>
+        
 
       <!-- ACTIVITY LOG TAB -->
       <div id="dtab-activity" style="display:none">
@@ -1891,111 +1883,7 @@ async function clientLogin() {
 // ═══════════════════════════════════════════════════════
 // DEMO MODE — instant dashboard preview, no auth needed
 // ═══════════════════════════════════════════════════════
-function loadDemoMode() {
-  var demoOp = {
-    id: 'demo_001', company_name: '',
-    owner_name: '', email: '',
-    role: 'owner', argus_rating: 'ARGUS Platinum', status: 'active'
-  };
-  window._demoMode = true;
-  currentOperator = demoOp;
 
-  FLEET_STATUS = {
-    'N481SP': { status:'available',   aircraft:'Embraer Phenom 300E',       note:'' },
-    'N720JB': { status:'inflight',    aircraft:'Cessna Citation CJ4 Gen2',  note:'MIA \u2192 TEB \u00b7 ETA 14:30' },
-    'N38VT':  { status:'maintenance', aircraft:'Bombardier Challenger 350',  note:'C-check \u00b7 return 03/05' },
-    'N55KR':  { status:'scheduled',   aircraft:'Gulfstream G550',            note:'Dep 09:00 tomorrow' },
-    'N109AX': { status:'aog',         aircraft:'Dassault Falcon 2000LXS',   note:'Landing gear snag \u00b7 AOG KMIA' },
-    'N330LF': { status:'available',   aircraft:'Beechcraft King Air 350',   note:'' }
-  };
-
-  TEAM_MEMBERS = [
-    { id:'tm001', name:'Sarah Chen',   email:'s.chen@apexair.com',   role:'chief_pilot',  status:'active' },
-    { id:'tm002', name:'James Okafor', email:'j.okafor@apexair.com', role:'director_ops', status:'active' },
-    { id:'tm003', name:'Priya Nair',   email:'p.nair@apexair.com',   role:'dispatcher',   status:'active' },
-    { id:'tm004', name:'Lucas Moreau', email:'l.moreau@apexair.com', role:'pilot',        status:'active' },
-    { id:'tm005', name:'Dana Elliot',  email:'d.elliot@apexair.com', role:'dispatcher',   status:'suspended' }
-  ];
-
-  ACTIVITY_LOG = [
-    { id:'l1', ts:new Date(Date.now()-480000).toISOString(),  category:'quote',   description:'Quote submitted \u2014 N481SP \u00b7 MIA \u2192 TEB \u00b7 $14,200', user:'',  role:'owner' },
-    { id:'l2', ts:new Date(Date.now()-1320000).toISOString(), category:'fleet',   description:'N720JB status: Scheduled \u2192 In Flight',                           user:'Sarah Chen',   role:'chief_pilot' },
-    { id:'l3', ts:new Date(Date.now()-2700000).toISOString(), category:'booking', description:'New request \u00b7 OPF \u2192 TEB \u00b7 4 pax',                      user:'System',       role:'unknown' },
-    { id:'l4', ts:new Date(Date.now()-5400000).toISOString(), category:'team',    description:'Suspended D. Elliot \u2014 access revoked temporarily',               user:'',  role:'owner' },
-    { id:'l5', ts:new Date(Date.now()-8400000).toISOString(), category:'fleet',   description:'N38VT status: Available \u2192 Maintenance',                          user:'James Okafor', role:'director_ops' },
-    { id:'l6', ts:new Date(Date.now()-12000000).toISOString(),category:'quote',   description:'Quote submitted \u2014 N55KR \u00b7 VNY \u2192 KSUN \u00b7 $28,500', user:'Priya Nair',   role:'dispatcher' }
-  ];
-
-  var demoFleet = [
-    { tail_number:'N481SP', aircraft_type:'Embraer Phenom 300E',      max_passengers:8,  year:2022, home_fbo:'OPF', status:'Available' },
-    { tail_number:'N720JB', aircraft_type:'Cessna Citation CJ4 Gen2', max_passengers:9,  year:2021, home_fbo:'MIA', status:'In Flight' },
-    { tail_number:'N38VT',  aircraft_type:'Bombardier Challenger 350',max_passengers:10, year:2019, home_fbo:'TEB', status:'Maintenance' },
-    { tail_number:'N55KR',  aircraft_type:'Gulfstream G550',           max_passengers:16, year:2018, home_fbo:'VNY', status:'Scheduled' },
-    { tail_number:'N109AX', aircraft_type:'Dassault Falcon 2000LXS',  max_passengers:10, year:2020, home_fbo:'MIA', status:'AOG' },
-    { tail_number:'N330LF', aircraft_type:'Beechcraft King Air 350',  max_passengers:11, year:2023, home_fbo:'FXE', status:'Available' }
-  ];
-
-  var scMap = { Available:'var(--green2)', 'In Flight':'#58A6FF', Maintenance:'#FF6B6B', Scheduled:'var(--gold2)', AOG:'#FF3B30' };
-  var display = document.getElementById('fleet-display');
-  if (display) {
-    display.innerHTML = demoFleet.map(function(f) {
-      var sc = scMap[f.status] || 'var(--text3)';
-      return '<div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:12px;display:flex;align-items:center;gap:16px">' +
-        '<div style="width:52px;height:52px;border-radius:14px;background:rgba(229,168,60,0.1);border:1px solid rgba(229,168,60,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0">' +
-        '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold2)" stroke-width="1.8"><path d="M2 18L12 5L22 18"/><line x1="2" y1="20" x2="22" y2="20"/></svg></div>' +
-        '<div style="flex:1"><div style="font-size:15px;font-weight:700;color:var(--text)">' + f.aircraft_type + '</div>' +
-        '<div style="font-size:11px;color:var(--text3);margin-top:2px">' + f.tail_number + ' \u00b7 ' + f.max_passengers + ' seats \u00b7 ' + f.year + ' \u00b7 ' + f.home_fbo + '</div></div>' +
-        '<div style="color:' + sc + ';font-size:10px;font-weight:800;padding:4px 10px;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08)">' + f.status + '</div></div>';
-    }).join('');
-  }
-
-  var qmAc = document.getElementById('qm-ac');
-  if (qmAc) {
-    qmAc.innerHTML = demoFleet.map(function(f) {
-      return '<option>' + f.aircraft_type + ' (' + f.tail_number + ')</option>';
-    }).join('');
-  }
-
-  var demoReqs = [
-    { id:'r1', from:'OPF', to:'TEB', fromCity:'Miami, FL',    toCity:'Teterboro, NJ', date:'2026-03-12', time:'08:00', pax:4, notes:'Catering: Continental breakfast. Ground transport at TEB.' },
-    { id:'r2', from:'VNY', to:'ASE', fromCity:'Van Nuys, CA', toCity:'Aspen, CO',     date:'2026-03-14', time:'10:30', pax:6, notes:'Stand-up cabin required. 2x heavy ski bags.' },
-    { id:'r3', from:'ADS', to:'SJD', fromCity:'Addison, TX',  toCity:'Los Cabos, MX', date:'2026-03-15', time:'Flexible', pax:8, notes:'International. Pet on board: Labrador, 85lbs.' }
-  ];
-  window._demoReqMap = {};
-  demoReqs.forEach(function(r) { window._demoReqMap[r.id] = r; });
-
-  var reqList = document.getElementById('requests-list');
-  if (reqList) {
-    var sbBadge = document.getElementById('sb-badge');
-    if (sbBadge) { sbBadge.textContent = demoReqs.length; sbBadge.style.display = 'block'; }
-    var setEl = function(id, v) { var e = document.getElementById(id); if (e) e.textContent = v; };
-    setEl('d-stat-req', demoReqs.length);
-    setEl('d-stat-quotes', '7');
-    setEl('d-stat-revenue', '$0');
-
-    reqList.innerHTML = demoReqs.map(function(r) {
-      var ds = new Date(r.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-      var nh = r.notes ? '<div style="font-size:12px;color:var(--text3);padding:8px 12px;background:var(--bg3);border-radius:8px;margin-bottom:12px">\uD83D\uDCDD ' + r.notes + '</div>' : '';
-      return '<div class="req-card new-req" id="rc-' + r.id + '">' +
-        '<div class="req-top"><div><div class="req-route">' + r.from + ' \u2192 ' + r.to + '</div>' +
-        '<div class="req-meta">' + r.fromCity + ' \u2192 ' + r.toCity + '</div></div>' +
-        '<div class="req-badge new-b"><div style="width:5px;height:5px;border-radius:50%;background:#58A6FF;animation:pulse 1.2s infinite"></div>New</div></div>' +
-        '<div class="req-details">' +
-        '<div><div class="req-detail-label">Date</div><div class="req-detail-value">' + ds + '</div></div>' +
-        '<div><div class="req-detail-label">Time</div><div class="req-detail-value">' + r.time + '</div></div>' +
-        '<div><div class="req-detail-label">Passengers</div><div class="req-detail-value">' + r.pax + ' pax</div></div>' +
-        '<div><div class="req-detail-label">Submitted</div><div class="req-detail-value">Just now</div></div>' +
-        '</div>' + nh +
-        '<div class="req-actions">' +
-        '<button class="req-btn quote-btn" onclick="openDemoModal(' + JSON.stringify(r.id) + ')">Submit Quote</button>' +
-        '<button class="req-btn decline-btn">Decline</button></div>' +
-        '<div id="qstate-' + r.id + '"></div></div>';
-    }).join('');
-  }
-
-  loadDashboard(demoOp);
-  showToast('success', '\u2713', 'Demo loaded', 'Apex Air Charter \u00b7 Owner view');
-}
 
 
 function openDemoModal(reqId) {
@@ -3293,18 +3181,7 @@ function seedFleetStatus(tail, aircraftType) {
 
 
 // Demo fleet seed for prototype testing
-function seedDemoFleet() {
-  FLEET_STATUS = {
-    'N481SP': { status: 'available',   aircraft: 'Embraer Phenom 300E',    note: '' },
-    'N720JB': { status: 'inflight',    aircraft: 'Cessna Citation CJ4',    note: 'MIA → TEB, ETA 14:30' },
-    'N38VT':  { status: 'maintenance', aircraft: 'Bombardier Challenger 350', note: 'Scheduled C-check, return 03/05' },
-    'N55KR':  { status: 'scheduled',   aircraft: 'Gulfstream G550',         note: 'Dep 09:00 tomorrow' },
-    'N109AX': { status: 'aog',         aircraft: 'Dassault Falcon 2000LXS', note: 'Landing gear snag, AOG KMIA' },
-    'N330LF': { status: 'available',   aircraft: 'Beechcraft King Air 350', note: '' },
-  };
-  renderFleetStatusBoard();
-  showToast('success', 'check', 'Demo fleet loaded', '6 aircraft added to status board.');
-}
+
 
 // Activity log filter
 var _activityFilter = '';
@@ -4275,6 +4152,25 @@ async function connectStripe() {
   }
 })();
 
+
+function loadDashboard() {
+  if (_opRecord) {
+    var wn = document.getElementById('op-welcome-name');
+    if (wn) wn.textContent = _opRecord.company_name || _opRecord.email || '';
+    var sn = document.getElementById('op-sidebar-name');
+    if (sn) sn.textContent = _opRecord.company_name || '';
+    var connectBtn = document.getElementById('stripe-connect-btn');
+    if (connectBtn && _opRecord.stripe_account_id) {
+      connectBtn.textContent = '\u2713 Bank Account Connected';
+      connectBtn.style.background = 'rgba(79,208,128,0.1)';
+      connectBtn.style.color = '#4FD080';
+      connectBtn.disabled = true;
+    }
+  }
+  switchDashTab('requests');
+  if (typeof loadRequestsFromDB === 'function') loadRequestsFromDB();
+}
 </script>
+
 </body>
 </html>
