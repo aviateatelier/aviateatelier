@@ -4179,10 +4179,12 @@ function loadDashboard() {
   showView('view-dashboard');
 
   if (_opRecord) {
-    var wn = document.getElementById('op-welcome-name');
-    if (wn) wn.textContent = _opRecord.company_name || _opRecord.email || '';
-    var sn = document.getElementById('op-sidebar-name');
-    if (sn) sn.textContent = _opRecord.company_name || '';
+    // Update all name display elements with correct IDs
+    var nameEls = ['op-welcome-name','op-sidebar-name','db-company-name','db-owner-name','nav-user-name'];
+    nameEls.forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.textContent = _opRecord.company_name || _opRecord.email || '';
+    });
     var connectBtn = document.getElementById('stripe-connect-btn');
     if (connectBtn && _opRecord.stripe_account_id) {
       connectBtn.textContent = '\u2713 Bank Account Connected';
@@ -4192,7 +4194,7 @@ function loadDashboard() {
     }
   }
   switchDashTab('requests');
-  if (typeof loadRequestsFromDB === 'function') loadRequestsFromDB();
+  if (typeof loadRequests === 'function') setTimeout(loadRequests, 100);
 }
 </script>
 
