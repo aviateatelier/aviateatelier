@@ -448,7 +448,7 @@ body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--t
     <div class="ob-sub">Let's get your charter operation set up. This takes about 10 minutes. You'll need your FAA Part 135 certificate number and ARGUS or Wyvern rating on hand.</div>
     <div class="field-group">
       <div class="field-label">Legal Company Name <span class="field-required">Required</span></div>
-      <input class="field-input" placeholder="SkyPrime Aviation LLC" id="f-company">
+      <input class="field-input" placeholder="Legal Company Name" id="f-company">
     </div>
     <div class="field-row">
       <div class="field-group">
@@ -898,7 +898,7 @@ body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--t
       </div>
 
       <!-- OSA TAB -->
-      <div id="dtab-osa" style="display:none">
+      <div id="dtab-osa" style="display:none" style="display:none">
         <!-- OSA Header -->
         <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;display:flex;align-items:center;gap:16px;margin-bottom:20px">
           <div style="width:48px;height:48px;background:rgba(79,208,128,0.1);border:1px solid rgba(79,208,128,0.25);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
@@ -1898,7 +1898,7 @@ async function clientLogin() {
 function loadDemoMode() {
   var demoOp = {
     id: 'demo_001', company_name: 'Apex Air Charter LLC',
-    owner_name: '', email: 'marcus@apexair.com',
+    owner_name: '', email: 'ops@yourcompany.com',
     role: 'owner', argus_rating: 'ARGUS Platinum', status: 'active'
   };
   window._demoMode = true;
@@ -2540,7 +2540,7 @@ async function submitQuote() {
 
 // ══ DASHBOARD TABS ══
 function switchDashTab(tab) {
-  ['requests','bookings','fleet','osa','status','activity','pilots'].forEach(function(t) {
+  ['requests','bookings','fleet','status','activity','pilots'].forEach(function(t) {
     var el = document.getElementById('dtab-' + t);
     if (el) el.style.display = t === tab ? 'block' : 'none';
     var si = document.querySelector('.sidebar-item[onclick="switchDashTab(\'' + t + '\')"]');
