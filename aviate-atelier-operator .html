@@ -4152,19 +4152,16 @@ async function submitPilotRequest(pilotId, offerData) {
 }
 
 // ══ PILOT ROSTER ══
-var PILOT_DB = [
-  { id:'p1', name:'James Whitfield',  initials:'JW', bg:'rgba(91,163,255,0.12)',   fg:'#5BA3FF',  location:'Miami, FL',    auth:'FAA ATP',   pos:'PIC', avail:'available', types:['Gulfstream G550','G650','Challenger 350'], hours:14200, picHrs:8400, rate:850, lastFlown:'G550 - 3 days ago' },
-  { id:'p2', name:'Sophia Mueller',   initials:'SM', bg:'rgba(167,139,250,0.12)',  fg:'#A78BFA',  location:'Frankfurt, DE', auth:'EASA ATPL', pos:'PIC', avail:'available', types:['Falcon 7X','Falcon 2000LXS','Phenom 300E'],  hours:9800,  picHrs:5200, rate:780, lastFlown:'Falcon 7X - 1 week ago' },
-  { id:'p3', name:'Rajesh Kumar',     initials:'RK', bg:'rgba(229,168,60,0.12)',   fg:'#E5A83C',  location:'Dubai, UAE',    auth:'DGCA/FAA',  pos:'SIC', avail:'open',      types:['Citation CJ4','King Air 350'],               hours:4400,  picHrs:1200, rate:420, lastFlown:'CJ4 - 2 weeks ago' },
-  { id:'p4', name:'Amara Okonkwo',    initials:'AO', bg:'rgba(45,212,191,0.12)',   fg:'#2DD4BF',  location:'Sydney, AU',    auth:'CASA ATPL', pos:'PIC', avail:'available', types:['Challenger 350','Global 6000'],              hours:11300, picHrs:7100, rate:920, lastFlown:'Global 6000 - 5 days ago' },
-  { id:'p5', name:'Marc Lefebvre',    initials:'ML', bg:'rgba(79,208,128,0.12)',   fg:'#4FD080',  location:'Montreal, CA',  auth:'TC ATP',    pos:'PIC', avail:'available', types:['Phenom 300E','Citation XLS+','King Air 350'],hours:6700,  picHrs:3900, rate:610, lastFlown:'Phenom 300E - Yesterday' },
-  { id:'p6', name:'Priya Santos',     initials:'PS', bg:'rgba(255,159,67,0.12)',   fg:'#FF9F43',  location:'Manila, PH',    auth:'CAAP CPL',  pos:'SIC', avail:'open',      types:['King Air 200','ATR 72'],                     hours:2800,  picHrs:400,  rate:280, lastFlown:'ATR 72 - 3 days ago' },
-];
+var PILOT_DB = [];
 
 function renderPilotRoster(pilots) {
   var list = document.getElementById('pilot-roster-list');
   if (!list) return;
   if (!pilots) pilots = PILOT_DB;
+  if (!pilots || pilots.length === 0) {
+    list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);"><div style="font-size:32px;margin-bottom:12px;">👨‍✈️</div><div style="font-size:14px;font-weight:600;margin-bottom:6px;">No pilots yet</div><div style="font-size:12px;">Pilots who register on the platform will appear here.</div></div>';
+    return;
+  }
   var avColor = { available: 'var(--green2)', open: 'var(--gold2)', booked: 'var(--text3)' };
   var avLabel = { available: 'Available Now', open: 'Open to Offers', booked: 'Unavailable' };
   var html = '';
