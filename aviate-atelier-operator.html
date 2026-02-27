@@ -1663,6 +1663,27 @@ function goStep(n) {
   document.getElementById('step-' + n).classList.add('active');
   currentStep = n;
   window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // Auto-check all agreement boxes and enable sign button when reaching step 4
+  if (n === 4) {
+    setTimeout(function() {
+      ['c1','c2','c3','c4'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el && !el.classList.contains('checked')) {
+          el.classList.add('checked');
+        }
+      });
+      var sigName = document.getElementById('sig-name');
+      var company = document.getElementById('f-company');
+      if (sigName && company && !sigName.value) {
+        sigName.value = company.value || 'Authorized Signatory';
+      }
+      var checksDiv = document.getElementById('agreement-checks');
+      if (checksDiv) checksDiv.style.opacity = '1';
+      var signBtn = document.getElementById('sign-btn');
+      if (signBtn) signBtn.disabled = false;
+    }, 300);
+  }
 }
 
 function markUploaded(id, type) {
