@@ -4222,18 +4222,26 @@ function loadDashboard() {
 
 // ── REALTIME — new booking requests ──
 function startRealtimeRequests() {
-  if (!_sb) return;
-  _sb.channel('booking_requests_channel')
-    .on('postgres_changes', {
-      event: 'INSERT',
-      schema: 'public',
-      table: 'booking_requests'
-    }, function(payload) {
-      showToast('info', '🔔', 'New Request!', 
-        (payload.new.from_airport || '?') + ' → ' + (payload.new.to_airport || '?'));
-      loadRequests();
-    })
-    .subscribe();
+  if (!_sb) { console.warn('Realtime: _sb not ready'); return; }
+  console.log('Realtime: subscribing to booking_requests...');
+  
+  var channel = _sb.channel('booking-requests-' + Date.now(), {
+    config: { broadcast: { self: true } }
+  });
+  
+  channel.on(
+    'postgres_changes',
+    { event: 'INSERT', schema: 'public', table: 'booking_requests' },
+    function(payload) {
+      console.log('Realtime payload received:', payload);
+      var r = payload.new;
+      showToast('info', '🔔', 'New Booking Request!', 
+        (r.from_airport||'?') + ' → ' + (r.to_airport||'?') + ' • ' + (r.passengers||1) + ' pax');
+      if (typeof loadRequests === 'function') loadRequests();
+    }
+  ).subscribe(function(status) {
+    console.log('Realtime subscription status:', status);
+  });
 }
 
 // ── SUBMIT QUOTE MODAL ──
