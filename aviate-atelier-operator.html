@@ -2474,6 +2474,7 @@ function switchDashTab(tab) {
     if (si) si.classList.toggle('active', t === tab);
   });
   if (tab === 'pilots') { setTimeout(function(){ loadPilotsFromDB ? loadPilotsFromDB() : renderPilotRoster(); }, 50); }
+  if (tab === 'fleet') { setTimeout(function(){ if (typeof loadFleetFromDB === 'function') loadFleetFromDB(); }, 50); }
   var titles = {
     requests:  ['New Requests',       'Incoming booking requests matching your fleet'],
     bookings:  ['Active Bookings',    'Confirmed bookings and upcoming flights'],
@@ -4360,6 +4361,136 @@ async function declineRequest(requestId) {
   } catch(e) {
     showToast('error', '✕', 'Error', e.message);
   }
+}
+
+// ── ADD AIRCRAFT MODAL ──
+function openAddAircraftModal() {
+  var existing = document.getElementById('add-aircraft-modal');
+  if (existing) existing.remove();
+
+  var modal = document.createElement('div');
+  modal.id = 'add-aircraft-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+  modal.innerHTML = `
+    <div style="background:#12151F;border:1px solid #262B3A;border-radius:24px;padding:32px;width:100%;max-width:480px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+        <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;">Add Aircraft</div>
+        <button onclick="document.getElementById('add-aircraft-modal').remove()" style="background:none;border:none;color:#8892A4;font-size:24px;cursor:pointer;">✕</button>
+      </div>
+      <div style="margin-bottom:16px;">
+        <div style="font-size:11px;color:#8892A4;margin-bottom:6px;text-transform:uppercase;">Aircraft Type</div>
+        <select id="am-type" style="width:100%;background:#07090F;border:1px solid #262B3A;border-radius:10px;padding:12px;color:#EDF2FF;font-size:14px;">
+          <option value="">Select type...</option>
+          <option>Cessna Citation CJ3</option>
+          <option>Cessna Citation XLS</option>
+          <option>Cessna Citation Latitude</option>
+          <option>Embraer Phenom 100</option>
+          <option>Embraer Phenom 300</option>
+          <option>Embraer Legacy 500</option>
+          <option>Gulfstream G280</option>
+          <option>Gulfstream G450</option>
+          <option>Gulfstream G550</option>
+          <option>Gulfstream G650</option>
+          <option>Bombardier Challenger 350</option>
+          <option>Bombardier Challenger 604</option>
+          <option>Bombardier Global 6000</option>
+          <option>Dassault Falcon 7X</option>
+          <option>Dassault Falcon 2000</option>
+          <option>Pilatus PC-12</option>
+          <option>King Air 350</option>
+          <option>Hawker 800XP</option>
+        </select>
+      </div>
+      <div style="margin-bottom:16px;">
+        <div style="font-size:11px;color:#8892A4;margin-bottom:6px;text-transform:uppercase;">Tail Number</div>
+        <input id="am-tail" type="text" placeholder="e.g. N123AB" style="width:100%;background:#07090F;border:1px solid #262B3A;border-radius:10px;padding:12px;color:#EDF2FF;font-size:14px;">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+        <div>
+          <div style="font-size:11px;color:#8892A4;margin-bottom:6px;text-transform:uppercase;">Year</div>
+          <input id="am-year" type="number" placeholder="e.g. 2019" style="width:100%;background:#07090F;border:1px solid #262B3A;border-radius:10px;padding:12px;color:#EDF2FF;font-size:14px;">
+        </div>
+        <div>
+          <div style="font-size:11px;color:#8892A4;margin-bottom:6px;text-transform:uppercase;">Max Passengers</div>
+          <input id="am-pax" type="number" placeholder="e.g. 8" style="width:100%;background:#07090F;border:1px solid #262B3A;border-radius:10px;padding:12px;color:#EDF2FF;font-size:14px;">
+        </div>
+      </div>
+      <div style="margin-bottom:20px;">
+        <div style="font-size:11px;color:#8892A4;margin-bottom:6px;text-transform:uppercase;">Home FBO / Base Airport</div>
+        <input id="am-fbo" type="text" placeholder="e.g. KTEB - Teterboro" style="width:100%;background:#07090F;border:1px solid #262B3A;border-radius:10px;padding:12px;color:#EDF2FF;font-size:14px;">
+      </div>
+      <div id="am-error" style="color:#FF6B6B;font-size:12px;margin-bottom:12px;display:none;"></div>
+      <button onclick="saveNewAircraft()" style="width:100%;background:linear-gradient(135deg,#C8912A,#E5A83C);color:#07090F;border:none;border-radius:14px;padding:16px;font-size:15px;font-weight:800;cursor:pointer;">
+        Add to Fleet
+      </button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+async function saveNewAircraft() {
+  var type = document.getElementById('am-type').value;
+  var tail = document.getElementById('am-tail').value.trim();
+  var year = document.getElementById('am-year').value;
+  var pax = document.getElementById('am-pax').value;
+  var fbo = document.getElementById('am-fbo').value.trim();
+  var errEl = document.getElementById('am-error');
+
+  if (!type || !tail) {
+    errEl.textContent = 'Aircraft type and tail number are required.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  try {
+    var res = await _sb.from('fleet').insert([{
+      operator_id: _opRecord.id,
+      aircraft_type: type,
+      tail_number: tail.toUpperCase(),
+      year: year ? parseInt(year) : null,
+      max_passengers: pax ? parseInt(pax) : null,
+      home_fbo: fbo || null,
+      status: 'available'
+    }]).select();
+
+    if (res.error) throw new Error(res.error.message);
+
+    document.getElementById('add-aircraft-modal').remove();
+    showToast('success', '✓', 'Aircraft Added', type + ' — ' + tail.toUpperCase() + ' added to your fleet.');
+    loadFleetFromDB();
+  } catch(e) {
+    document.getElementById('am-error').textContent = e.message;
+    document.getElementById('am-error').style.display = 'block';
+  }
+}
+
+// ── LOAD FLEET FROM DB ──
+function loadFleetFromDB() {
+  if (!_opRecord) return;
+  _sb.from('fleet')
+    .select('*')
+    .eq('operator_id', _opRecord.id)
+    .order('created_at', { ascending: false })
+    .then(function(res) {
+      var fleet = res.data || [];
+      var display = document.getElementById('fleet-display');
+      if (!display) return;
+      if (!fleet.length) {
+        display.innerHTML = '<div class="empty-state"><div class="empty-title">No aircraft yet</div><div class="empty-sub">Click "+ Add Aircraft" to add your first aircraft.</div></div>';
+        return;
+      }
+      var html = '';
+      fleet.forEach(function(a) {
+        html += '<div style="background:var(--card);border:1px solid var(--border2);border-radius:16px;padding:20px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;">' +
+          '<div>' +
+            '<div style="font-size:16px;font-weight:700;">' + (a.aircraft_type||'Unknown') + '</div>' +
+            '<div style="font-size:12px;color:var(--text3);margin-top:4px;">' + (a.tail_number||'') + (a.year ? ' &bull; ' + a.year : '') + (a.max_passengers ? ' &bull; ' + a.max_passengers + ' pax' : '') + (a.home_fbo ? ' &bull; ' + a.home_fbo : '') + '</div>' +
+          '</div>' +
+          '<span style="background:rgba(79,208,128,0.1);color:#4FD080;border-radius:6px;padding:4px 10px;font-size:10px;font-weight:700;">' + (a.status||'available').toUpperCase() + '</span>' +
+        '</div>';
+      });
+      display.innerHTML = html;
+    });
 }
 </script>
 
