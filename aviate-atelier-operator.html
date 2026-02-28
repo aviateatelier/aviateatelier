@@ -4381,24 +4381,164 @@ function openAddAircraftModal() {
         <div style="font-size:11px;color:#8892A4;margin-bottom:6px;text-transform:uppercase;">Aircraft Type</div>
         <select id="am-type" style="width:100%;background:#07090F;border:1px solid #262B3A;border-radius:10px;padding:12px;color:#EDF2FF;font-size:14px;">
           <option value="">Select type...</option>
-          <option>Cessna Citation CJ3</option>
-          <option>Cessna Citation XLS</option>
-          <option>Cessna Citation Latitude</option>
+          <optgroup label="── VERY LIGHT JETS ──">
+          <option>Cessna Citation Mustang</option>
+          <option>Cessna Citation M2</option>
+          <option>Eclipse 500</option>
+          <option>Eclipse 550</option>
           <option>Embraer Phenom 100</option>
+          <option>Embraer Phenom 100EV</option>
+          <option>HondaJet HA-420</option>
+          <option>Cirrus Vision SF50</option>
+          <option>Pilatus PC-24</option>
+          </optgroup>
+          <optgroup label="── LIGHT JETS ──">
+          <option>Cessna Citation CJ1</option>
+          <option>Cessna Citation CJ2</option>
+          <option>Cessna Citation CJ3</option>
+          <option>Cessna Citation CJ3+</option>
+          <option>Cessna Citation CJ4</option>
+          <option>Cessna Citation Bravo</option>
+          <option>Cessna Citation Encore</option>
+          <option>Cessna Citation Ultra</option>
           <option>Embraer Phenom 300</option>
-          <option>Embraer Legacy 500</option>
-          <option>Gulfstream G280</option>
-          <option>Gulfstream G450</option>
-          <option>Gulfstream G550</option>
-          <option>Gulfstream G650</option>
-          <option>Bombardier Challenger 350</option>
-          <option>Bombardier Challenger 604</option>
-          <option>Bombardier Global 6000</option>
-          <option>Dassault Falcon 7X</option>
-          <option>Dassault Falcon 2000</option>
+          <option>Embraer Phenom 300E</option>
+          <option>Beechcraft Premier I</option>
+          <option>Hawker 400XP</option>
+          <option>Learjet 31</option>
+          <option>Learjet 35</option>
+          <option>Learjet 40</option>
+          <option>Learjet 45</option>
+          <option>Learjet 45XR</option>
+          <option>Learjet 70</option>
+          <option>Learjet 75</option>
           <option>Pilatus PC-12</option>
+          <option>King Air C90</option>
+          <option>King Air 200</option>
+          <option>King Air 250</option>
           <option>King Air 350</option>
+          <option>King Air 350ER</option>
+          </optgroup>
+          <optgroup label="── MIDSIZE JETS ──">
+          <option>Cessna Citation XLS</option>
+          <option>Cessna Citation XLS+</option>
+          <option>Cessna Citation Sovereign</option>
+          <option>Cessna Citation Sovereign+</option>
+          <option>Cessna Citation Latitude</option>
+          <option>Embraer Legacy 450</option>
+          <option>Embraer Legacy 500</option>
+          <option>Embraer Praetor 500</option>
+          <option>Hawker 700</option>
+          <option>Hawker 750</option>
+          <option>Hawker 800</option>
           <option>Hawker 800XP</option>
+          <option>Hawker 850XP</option>
+          <option>Hawker 900XP</option>
+          <option>Hawker 4000</option>
+          <option>Gulfstream G150</option>
+          <option>Gulfstream G200</option>
+          <option>Gulfstream G280</option>
+          <option>Bombardier Learjet 60</option>
+          <option>Bombardier Learjet 60XR</option>
+          <option>Dassault Falcon 50</option>
+          <option>Dassault Falcon 50EX</option>
+          </optgroup>
+          <optgroup label="── SUPER MIDSIZE JETS ──">
+          <option>Cessna Citation Longitude</option>
+          <option>Embraer Legacy 600</option>
+          <option>Embraer Legacy 650</option>
+          <option>Embraer Praetor 600</option>
+          <option>Gulfstream G300</option>
+          <option>Gulfstream G350</option>
+          <option>Gulfstream G400</option>
+          <option>Gulfstream G450</option>
+          <option>Bombardier Challenger 300</option>
+          <option>Bombardier Challenger 350</option>
+          <option>Dassault Falcon 900</option>
+          <option>Dassault Falcon 900EX</option>
+          <option>Dassault Falcon 900LX</option>
+          <option>Dassault Falcon 2000</option>
+          <option>Dassault Falcon 2000EX</option>
+          <option>Dassault Falcon 2000LX</option>
+          <option>Dassault Falcon 2000S</option>
+          </optgroup>
+          <optgroup label="── LARGE / HEAVY JETS ──">
+          <option>Gulfstream G500</option>
+          <option>Gulfstream G550</option>
+          <option>Gulfstream G600</option>
+          <option>Gulfstream G650</option>
+          <option>Gulfstream G650ER</option>
+          <option>Gulfstream G700</option>
+          <option>Gulfstream G800</option>
+          <option>Bombardier Challenger 601</option>
+          <option>Bombardier Challenger 604</option>
+          <option>Bombardier Challenger 605</option>
+          <option>Bombardier Challenger 650</option>
+          <option>Bombardier Global 5000</option>
+          <option>Bombardier Global 5500</option>
+          <option>Bombardier Global 6000</option>
+          <option>Bombardier Global 6500</option>
+          <option>Bombardier Global 7500</option>
+          <option>Bombardier Global 8000</option>
+          <option>Dassault Falcon 7X</option>
+          <option>Dassault Falcon 8X</option>
+          <option>Dassault Falcon 10X</option>
+          <option>Embraer Lineage 1000</option>
+          <option>Embraer Lineage 1000E</option>
+          </optgroup>
+          <optgroup label="── ULTRA LONG RANGE ──">
+          <option>Airbus ACJ318</option>
+          <option>Airbus ACJ319</option>
+          <option>Airbus ACJ320</option>
+          <option>Airbus ACJ321</option>
+          <option>Boeing BBJ 737</option>
+          <option>Boeing BBJ 747</option>
+          <option>Boeing BBJ 757</option>
+          <option>Boeing BBJ 767</option>
+          <option>Boeing BBJ 777</option>
+          <option>Boeing BBJ 787</option>
+          </optgroup>
+          <optgroup label="── TURBOPROPS ──">
+          <option>Beechcraft King Air 90</option>
+          <option>Beechcraft King Air C90GTx</option>
+          <option>Beechcraft King Air 200GT</option>
+          <option>Beechcraft King Air 300</option>
+          <option>Beechcraft King Air 350i</option>
+          <option>Beechcraft King Air 360</option>
+          <option>Pilatus PC-12 NG</option>
+          <option>Pilatus PC-12 NGX</option>
+          <option>Daher TBM 850</option>
+          <option>Daher TBM 900</option>
+          <option>Daher TBM 910</option>
+          <option>Daher TBM 930</option>
+          <option>Daher TBM 940</option>
+          <option>Daher TBM 960</option>
+          <option>Piper Meridian M500</option>
+          <option>Piper M600</option>
+          <option>Piper Cheyenne</option>
+          <option>Cessna Caravan 208</option>
+          <option>Cessna Grand Caravan EX</option>
+          <option>Viking Air Twin Otter</option>
+          </optgroup>
+          <optgroup label="── HELICOPTERS ──">
+          <option>Airbus H125</option>
+          <option>Airbus H130</option>
+          <option>Airbus H145</option>
+          <option>Airbus H160</option>
+          <option>Airbus H175</option>
+          <option>Bell 407</option>
+          <option>Bell 429</option>
+          <option>Bell 430</option>
+          <option>Bell 505</option>
+          <option>Leonardo AW109</option>
+          <option>Leonardo AW119</option>
+          <option>Leonardo AW139</option>
+          <option>Leonardo AW169</option>
+          <option>Sikorsky S-76</option>
+          <option>Sikorsky S-92</option>
+          <option>Robinson R44</option>
+          <option>Robinson R66</option>
+          </optgroup>
         </select>
       </div>
       <div style="margin-bottom:16px;">
