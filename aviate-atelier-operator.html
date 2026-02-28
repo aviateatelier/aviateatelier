@@ -2008,52 +2008,49 @@ function loadClientDashboard(client) {
 
 // ══ LOAD REQUESTS (from Supabase) ══
 async function loadRequests() {
-  try {
-    const requests = await sb.select('booking_requests', '?status=eq.open&order=created_at.desc');
-    const list = document.getElementById('requests-list');
-    document.getElementById('d-stat-req').textContent = requests.length;
-
-    if (!requests.length) {
-      list.innerHTML = `<div class="empty-state"><div class="empty-icon"><svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="var(--text3)" stroke-width="1.5"><path d="M4 20L14 6L24 20"/><line x1="4" y1="23" x2="24" y2="23"/></svg></div><div class="empty-title">No requests yet</div><div class="empty-sub">Client booking requests will appear here in real time.</div></div>`;
-      return;
-    }
-
-    const badge = document.getElementById('sb-badge');
-    badge.textContent = requests.length; badge.style.display = 'block';
-
-    list.innerHTML = '';
-    requests.forEach(r => {
-      const card = document.createElement('div');
-      card.className = 'req-card new-req';
-      card.id = 'rc-' + r.id;
-      card.innerHTML = `
-        <div class="req-top">
-          <div>
-            <div class="req-route">${r.from_airport} → ${r.to_airport}</div>
-            <div class="req-meta">${r.from_city || ''} → ${r.to_city || ''}</div>
-          </div>
-          <div class="req-badge new-b">
-            <div style="width:5px;height:5px;border-radius:50%;background:#58A6FF;animation:pulse 1.2s infinite"></div>New
-          </div>
-        </div>
-        <div class="req-details">
-          <div><div class="req-detail-label">Date</div><div class="req-detail-value">${new Date(r.flight_date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div></div>
-          <div><div class="req-detail-label">Time</div><div class="req-detail-value">${r.flight_time || 'Flexible'}</div></div>
-          <div><div class="req-detail-label">Passengers</div><div class="req-detail-value">${r.passengers} pax</div></div>
-          <div><div class="req-detail-label">Submitted</div><div class="req-detail-value">${new Date(r.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div></div>
-        </div>
-        ${r.notes ? `<div style="font-size:12px;color:var(--text3);padding:8px 12px;background:var(--bg3);border-radius:8px;margin-bottom:12px">📝 ${r.notes}</div>` : ''}
-        <div class="req-actions">
-          <button class="req-btn quote-btn" onclick="openModal('${r.id}','${r.from_airport}','${r.to_airport}','${r.flight_date}','${r.passengers}')">Submit Quote</button>
-          <button class="req-btn decline-btn">Decline</button>
-        </div>
-        <div id="qstate-${r.id}"></div>`;
-      list.appendChild(card);
+  if (!_opRecord) return;
+  _sb.from('booking_requests')
+    .select('*')
+    .eq('status', 'open')
+    .order('created_at', { ascending: false })
+    .then(function(res) {
+      var requests = res.data || [];
+      var list = document.getElementById('requests-list');
+      var statEl = document.getElementById('d-stat-req');
+      if (statEl) statEl.textContent = requests.length;
+      if (!list) return;
+      if (!requests.length) {
+        list.innerHTML = '<div class="empty-state"><div class="empty-title">No requests yet</div><div class="empty-sub">New booking requests will appear here automatically.</div></div>';
+        return;
+      }
+      var html = '';
+      requests.forEach(function(r) {
+        var rid = r.id;
+        html += '<div style="background:var(--card);border:1px solid var(--border2);border-radius:16px;padding:20px;margin-bottom:12px;" data-request-id="' + rid + '">' +
+          '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">' +
+            '<div><div style="font-size:20px;font-weight:800;">' + (r.from_airport||'?') + ' &rarr; ' + (r.to_airport||'?') + '</div>' +
+            '<div style="font-size:11px;color:var(--text3)">' + (r.trip_type||'One Way') + '</div></div>' +
+            '<span style="background:rgba(88,166,255,0.1);color:#58A6FF;border-radius:6px;padding:4px 10px;font-size:10px;font-weight:700;">NEW</span>' +
+          '</div>' +
+          '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:14px;">' +
+            '<div><div style="font-size:9px;color:var(--text3);text-transform:uppercase">Date</div><div style="font-size:13px;font-weight:600">' + (r.departure_date||'Flexible') + '</div></div>' +
+            '<div><div style="font-size:9px;color:var(--text3);text-transform:uppercase">Pax</div><div style="font-size:13px;font-weight:600">' + (r.passengers||1) + '</div></div>' +
+          '</div>' +
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">' +
+            '<button class="req-quote-btn" data-id="' + rid + '" style="background:rgba(88,166,255,0.15);color:#58A6FF;border:1px solid rgba(88,166,255,0.3);border-radius:10px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;">Submit Quote</button>' +
+            '<button class="req-decline-btn" data-id="' + rid + '" style="background:transparent;color:var(--text3);border:1px solid var(--border2);border-radius:10px;padding:11px;font-size:13px;font-weight:600;cursor:pointer;">Decline</button>' +
+          '</div>' +
+        '</div>';
+      });
+      list.innerHTML = html;
+      // Attach event listeners
+      list.querySelectorAll('.req-quote-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() { openSubmitQuote(this.getAttribute('data-id')); });
+      });
+      list.querySelectorAll('.req-decline-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() { declineRequest(this.getAttribute('data-id')); });
+      });
     });
-
-  } catch (err) {
-    showToast('error', '✕', 'Could not load requests', err.message);
-  }
 }
 
 // ══ LOAD FLEET ══
