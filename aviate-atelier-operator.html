@@ -1839,7 +1839,7 @@ function goToDashboard() {
 // ══ OPERATOR LOGIN ══
 async function operatorLogin() {
   var email = document.getElementById('op-login-email') ? document.getElementById('op-login-email').value.trim() : '';
-  var pw    = document.getElementById('op-login-pw') ? document.getElementById('op-login-pw').value : '';
+  var pw    = document.getElementById('op-login-pass') ? document.getElementById('op-login-pass').value : '';
   if (!email || !pw) { showToast && showToast('warning','⚠','Missing fields','Enter email and password'); return; }
   const { data, error } = await _sb.auth.signInWithPassword({ email, password: pw });
   if (error) { alert('Login failed: ' + error.message); return; }
