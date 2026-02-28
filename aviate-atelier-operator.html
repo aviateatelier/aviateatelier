@@ -226,7 +226,7 @@ body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--t
 
 /* DASHBOARD */
 .dashboard-wrap { display: grid !important; grid-template-columns: 220px 1fr !important; min-height: calc(100vh - 60px); width: 100%; overflow: hidden; }
-.sidebar { background: var(--bg2); border-right: 1px solid var(--border); padding: 20px 0; position: sticky; top: 60px; height: calc(100vh - 60px); overflow-y: auto; }
+.sidebar { background: var(--bg2); border-right: 1px solid var(--border); padding: 20px 0; position: sticky; top: 60px; height: calc(100vh - 60px); overflow-y: auto; width: 220px; min-width: 220px; max-width: 220px; }
 .sidebar-company { padding: 0 18px 16px; border-bottom: 1px solid var(--border); margin-bottom: 12px; }
 .sidebar-company-name { font-size: 14px; font-weight: 700; color: var(--text); }
 .sidebar-cert { display: inline-flex; align-items: center; gap: 5px; background: rgba(107,79,187,0.12); border: 1px solid rgba(107,79,187,0.25); color: #9B7EFF; font-size: 9px; font-weight: 800; letter-spacing: .08em; padding: 3px 8px; border-radius: 6px; margin-top: 6px; }
@@ -240,7 +240,7 @@ body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--t
 .sidebar-item.active svg { opacity: 1; }
 .sidebar-badge { margin-left: auto; background: var(--red); color: white; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 8px; }
 .sidebar-badge.gold { background: rgba(229,168,60,0.2); color: var(--gold2); }
-.main-content { padding: 28px; overflow-y: auto; min-width: 0; flex: 1; }
+.main-content { padding: 28px; overflow-y: auto; min-width: 0; width: 100%; display: block; }
 #dtab-requests { display: block; }
 .page-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
 .page-sub { font-size: 13px; color: var(--text2); margin-bottom: 24px; }
@@ -329,8 +329,8 @@ body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--t
 .login-footer a { color: var(--gold2); text-decoration: none; cursor: pointer; }
 
 @media (max-width: 900px) {
-  .dashboard-wrap { grid-template-columns: 1fr; }
-  .sidebar { display: none; }
+  .dashboard-wrap { display: grid !important; grid-template-columns: 220px 1fr !important; min-height: calc(100vh - 60px); width: 100%; overflow: hidden; }
+  .sidebar { background: var(--bg2); border-right: 1px solid var(--border); padding: 20px 0; position: sticky; top: 60px; height: calc(100vh - 60px); overflow-y: auto; width: 220px; min-width: 220px; max-width: 220px; }
   .stats-grid { grid-template-columns: 1fr 1fr; }
   .path-cards { grid-template-columns: 1fr; }
 }
@@ -742,7 +742,7 @@ body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--t
 <!-- ══ OPERATOR DASHBOARD ══ -->
 
 <div class="view" id="view-dashboard">
-  <div class="dashboard-wrap">
+  <div class="dashboard-wrap" style="display:grid!important;grid-template-columns:220px 1fr!important;width:100%;min-height:calc(100vh - 60px)">
     <div class="sidebar">
       <div class="sidebar-company">
         <div class="sidebar-company-name" id="db-company-name">Loading...</div>
@@ -781,7 +781,7 @@ body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--t
         <div class="sidebar-group-label" id="sidebar-account-group">Account</div>
         
     </div>
-    <div class="main-content">
+    <div class="main-content" style="min-width:0;overflow-y:auto;padding:28px;background:var(--bg)">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
         <div>
           <div class="page-title" id="dash-page-title">New Requests</div>
