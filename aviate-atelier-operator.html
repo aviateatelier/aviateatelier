@@ -4262,8 +4262,10 @@ function openSubmitQuote(requestId) {
         <button onclick="document.getElementById('quote-modal').remove()" style="background:none;border:none;color:#8892A4;font-size:24px;cursor:pointer;">✕</button>
       </div>
       <div class="field-group" style="margin-bottom:16px;">
-        <div style="font-size:11px;color:#8892A4;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;">Aircraft Type</div>
-        <input id="q-aircraft" class="field-input" type="text" placeholder="e.g. Citation XLS, Gulfstream G450" style="width:100%;background:#07090F;border:1px solid #262B3A;border-radius:10px;padding:12px;color:#EDF2FF;font-size:14px;">
+        <div style="font-size:11px;color:#8892A4;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;">Aircraft</div>
+        <select id="q-aircraft" style="width:100%;background:#07090F;border:1px solid #262B3A;border-radius:10px;padding:12px;color:#EDF2FF;font-size:14px;cursor:pointer;">
+          <option value="">Loading fleet...</option>
+        </select>
       </div>
       <div class="field-group" style="margin-bottom:16px;">
         <div style="font-size:11px;color:#8892A4;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;">Charter Price (USD)</div>
@@ -4284,6 +4286,30 @@ function openSubmitQuote(requestId) {
     </div>
   `;
   document.body.appendChild(modal);
+
+  // Load operator fleet into dropdown
+  if (_opRecord) {
+    _sb.from('fleet')
+      .select('*')
+      .eq('operator_id', _opRecord.id)
+      .eq('status', 'available')
+      .then(function(res) {
+        var select = document.getElementById('q-aircraft');
+        if (!select) return;
+        var fleet = res.data || [];
+        if (!fleet.length) {
+          select.innerHTML = '<option value="">No aircraft in fleet — add in Fleet & Certs</option>';
+          return;
+        }
+        select.innerHTML = '<option value="">Select aircraft...</option>';
+        fleet.forEach(function(a) {
+          var opt = document.createElement('option');
+          opt.value = a.aircraft_type + (a.tail_number ? ' (' + a.tail_number + ')' : '');
+          opt.textContent = (a.aircraft_type||'Unknown') + (a.tail_number ? ' — ' + a.tail_number : '') + (a.max_passengers ? ' (' + a.max_passengers + ' pax)' : '');
+          select.appendChild(opt);
+        });
+      });
+  }
 }
 
 async function submitQuoteToClient() {
