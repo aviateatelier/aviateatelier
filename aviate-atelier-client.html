@@ -1111,44 +1111,65 @@ async function loadFleet(operatorId) {
 }
 
 // ══ LOAD CLIENT REQUESTS ══
-async function loadClientRequests(clientId) {
-  try {
-    const requests = await sb.select('booking_requests', `?client_id=eq.${clientId}&order=created_at.desc`);
-    const list = document.getElementById('cl-requests-list');
-    if (!requests.length) return;
+async function loadClientRequests() {
+  if (!_clientUser) return;
+  window._quoteMap = {};
+  _sb.from('booking_requests')
+    .select('*, quotes(*)')
+    .eq('client_id', _clientUser.id)
+    .order('created_at', { ascending: false })
+    .then(function(res) {
+      var requests = res.data || [];
+      var list = document.getElementById('cl-requests-list');
+      if (!list) return;
+      if (!requests.length) {
+        list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3)">No bookings yet. Submit a charter request above.</div>';
+        return;
+      }
+      var html = '';
+      requests.forEach(function(r) {
+        var quotes = r.quotes || [];
+        var statusLabel = r.status === 'open' ? '🔵 Awaiting Quotes' :
+                         r.status === 'quoted' ? '🟡 ' + quotes.length + ' Quote' + (quotes.length!==1?'s':'') + ' Received' :
+                         r.status === 'confirmed' ? '🟢 Confirmed' : r.status;
+        html += '<div style="background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px;margin-bottom:16px;">' +
+          '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">' +
+            '<div>' +
+              '<div style="font-size:22px;font-weight:800;">' + (r.from_airport||'?') + ' → ' + (r.to_airport||'?') + '</div>' +
+              '<div style="font-size:12px;color:var(--text3);margin-top:4px;">' + (r.departure_date||'Flexible') + ' · ' + (r.passengers||1) + ' pax</div>' +
+            '</div>' +
+            '<span style="font-size:12px;font-weight:600;">' + statusLabel + '</span>' +
+          '</div>';
 
-    list.innerHTML = requests.map(r => {
-      const isIntl = (r.notes || '').toLowerCase().includes('international');
-      const statusColors = {
-        open: { bg: 'rgba(88,166,255,0.1)', border: 'rgba(88,166,255,0.3)', color: '#58A6FF', label: '🔵 Awaiting Quotes' },
-        quoted: { bg: 'rgba(229,168,60,0.1)', border: 'rgba(229,168,60,0.3)', color: 'var(--gold2)', label: '💛 Quotes Received' },
-        confirmed: { bg: 'rgba(79,208,128,0.1)', border: 'rgba(79,208,128,0.3)', color: 'var(--green2)', label: '✅ Confirmed' },
-        manifest_complete: { bg: 'rgba(79,208,128,0.1)', border: 'rgba(79,208,128,0.3)', color: 'var(--green2)', label: '✅ Manifest Complete' }
-      };
-      const s = statusColors[r.status] || statusColors.open;
-      const tripType = r.trip_type === 'return' ? '↔ Return' : r.trip_type === 'multistop' ? '✦ Multi-Stop' : '→ One Way';
-
-      return `<div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
-          <div>
-            <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:600;color:var(--text)">${r.from_airport} → ${r.to_airport}</div>
-            <div style="font-size:11px;color:var(--text3);margin-top:3px">${tripType} · ${new Date(r.flight_date).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'})} · ${r.passengers} pax</div>
-          </div>
-          <div style="background:${s.bg};border:1px solid ${s.border};color:${s.color};font-size:10px;font-weight:800;padding:5px 12px;border-radius:8px;white-space:nowrap">${s.label}</div>
-        </div>
-        ${r.notes ? `<div style="font-size:11px;color:var(--text3);background:var(--bg3);border-radius:8px;padding:8px 12px;margin-bottom:12px;line-height:1.6">📝 ${r.notes}</div>` : ''}
-        ${r.status === 'quoted' ? `
-        <button onclick="openManifest(null, ${r.passengers}, ${isIntl})" style="width:100%;height:42px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--bg);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M2 7l4 4 6-7"/></svg>
-          Accept Quote & Complete Passenger Manifest
-        </button>` : ''}
-        ${r.status === 'manifest_complete' ? `<div style="text-align:center;font-size:12px;color:var(--green2);font-weight:700;padding:8px">✓ Manifest submitted — awaiting final operator confirmation</div>` : ''}
-      </div>`;
-    }).join('');
-
-  } catch (err) {
-    console.error('Client requests load error:', err);
-  }
+        if (quotes.length > 0) {
+          html += '<div style="border-top:1px solid var(--border);padding-top:16px;">' +
+            '<div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;margin-bottom:12px;">Quotes Received</div>';
+          quotes.forEach(function(q) {
+            window._quoteMap[q.id] = q;
+            html += '<div style="background:var(--bg);border:1px solid var(--border2);border-radius:14px;padding:16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">' +
+              '<div>' +
+                '<div style="font-size:15px;font-weight:700;">' + (q.aircraft_type||'Aircraft') + '</div>' +
+                '<div style="font-size:12px;color:var(--text3);margin-top:2px;">' + (q.flight_time||'') + (q.notes ? ' · ' + q.notes : '') + '</div>' +
+              '</div>' +
+              '<div style="text-align:right;">' +
+                '<div style="font-size:20px;font-weight:800;color:var(--gold2);">$' + Number(q.price||0).toLocaleString() + '</div>' +
+                (r.status !== 'confirmed' ? '<button class="accept-quote-btn" data-qid="' + q.id + '" style="margin-top:8px;background:linear-gradient(135deg,#C8912A,#E5A83C);color:#07090F;border:none;border-radius:10px;padding:8px 16px;font-size:12px;font-weight:800;cursor:pointer;">Accept &amp; Pay</button>' : '<span style="color:#4FD080;font-size:12px;font-weight:700;">✓ Accepted</span>') +
+              '</div>' +
+            '</div>';
+          });
+          html += '</div>';
+        }
+        html += '</div>';
+      });
+      list.innerHTML = html;
+      list.querySelectorAll('.accept-quote-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var qid = this.getAttribute('data-qid');
+          var quote = window._quoteMap[qid];
+          if (quote) initiatePayment(quote);
+        });
+      });
+    });
 }
 
 // ══ CLIENT SUBMIT BOOKING REQUEST ══
