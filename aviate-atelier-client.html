@@ -1030,7 +1030,8 @@ function loadClientDashboard(client) {
   if (navLogout) navLogout.style.display = 'block';
   document.getElementById('nav-logout-btn').style.display = 'block';
   showView('view-client-dashboard');
-  loadClientRequests(client.id);
+  loadClientRequests();
+  startRealtimeQuotes();
 }
 
 // ══ LOAD REQUESTS (from Supabase) ══
@@ -1112,6 +1113,7 @@ async function loadFleet(operatorId) {
 
 // ══ LOAD CLIENT REQUESTS ══
 async function loadClientRequests() {
+  var _clientUser = currentClient || window._clientUser;
   if (!_clientUser) return;
   window._quoteMap = {};
   _sb.from('booking_requests')
@@ -1174,98 +1176,47 @@ async function loadClientRequests() {
 
 // ══ CLIENT SUBMIT BOOKING REQUEST ══
 async function submitBookingRequest() {
-  if (!currentClient) { showToast('error', '✕', 'Not signed in', 'Please sign in to submit a request.'); return; }
+  var user = currentClient || window._clientUser;
+  if (!user) { showToast('error', '✕', 'Not signed in', 'Please sign in first.'); return; }
 
-  const from = document.getElementById('req-from').value.trim();
-  const to = document.getElementById('req-to').value.trim();
-  const date = document.getElementById('req-date').value;
-  const pax = document.getElementById('req-pax').value;
-  const time = document.getElementById('req-time').value;
-  const notes = document.getElementById('req-notes').value.trim();
+  var from = (document.getElementById('req-from')||{}).value || '';
+  var to = (document.getElementById('req-to')||{}).value || '';
+  var date = (document.getElementById('req-date')||{}).value || '';
+  var pax = (document.getElementById('req-pax')||{}).value || 1;
+  var time = (document.getElementById('req-time')||{}).value || '';
+  var notes = (document.getElementById('req-notes')||{}).value || '';
+  var tripType = window.currentTripType || 'oneway';
 
-  if (!from || !to || !date) { showToast('error', '✕', 'Missing details', 'Please fill in departure, destination, and date.'); return; }
+  from = from.trim();
+  to = to.trim();
 
-  // Build preferences summary
-  const prefList = Array.from(activePrefs);
-  let prefNotes = '';
-  if (prefList.includes('catering')) {
-    const level = document.getElementById('req-catering-level')?.value || '';
-    const diet = document.getElementById('req-dietary')?.value || '';
-    prefNotes += `Catering: ${level}${diet !== 'None / Standard' ? ' · ' + diet : ''}. `;
-  }
-  if (prefList.includes('transport')) {
-    const type = document.getElementById('req-transport-type')?.value || '';
-    const addr = document.getElementById('req-transport-addr')?.value || '';
-    prefNotes += `Ground Transport: ${type}${addr ? ' from ' + addr : ''}. `;
-  }
-  if (prefList.includes('pet')) {
-    const breed = document.getElementById('req-pet-breed')?.value || '';
-    const weight = document.getElementById('req-pet-weight')?.value || '';
-    prefNotes += `Pet on board: ${breed}${weight ? ' ' + weight + 'lbs' : ''}. `;
-  }
-  if (prefList.includes('luggage')) {
-    const count = document.getElementById('req-luggage-count')?.value || '';
-    const items = document.getElementById('req-luggage-items')?.value || '';
-    prefNotes += `Heavy Luggage: ${count}${items ? ' — ' + items : ''}. `;
-  }
-  if (prefList.includes('wifi')) prefNotes += 'WiFi required. ';
-  if (prefList.includes('standup')) prefNotes += 'Stand-up cabin required. ';
-  if (prefList.includes('wheelchair')) prefNotes += 'Accessibility accommodations needed. ';
-  if (prefList.includes('international')) prefNotes += 'International flight. ';
+  if (!from || !to) { showToast('error', '✕', 'Missing details', 'Please enter departure and destination airports.'); return; }
 
-  // Minor info
-  let minorNotes = '';
-  if (minorsOn) {
-    const count = document.getElementById('req-minors-count')?.value || '';
-    const accompanied = document.getElementById('req-minors-accompanied')?.value || '';
-    const ages = document.getElementById('req-minors-ages')?.value || '';
-    minorNotes = `MINORS ON BOARD: ${count} minor(s), ${accompanied === 'yes' ? 'accompanied' : 'UNACCOMPANIED'}${ages ? ', ages: ' + ages : ''}. `;
-  }
+  var fromAirport = from.includes('—') ? from.split('—')[0].trim().toUpperCase() : from.toUpperCase();
+  var toAirport = to.includes('—') ? to.split('—')[0].trim().toUpperCase() : to.toUpperCase();
 
-  const tripTypeLabel = currentTripType === 'oneway' ? 'One Way' : currentTripType === 'return' ? 'Return' : 'Multi-Stop';
-  const returnInfo = currentTripType === 'return' ? `Return date: ${document.getElementById('req-return-date')?.value || 'TBD'}. ` : '';
-  const fullNotes = [minorNotes, prefNotes, returnInfo, notes].filter(Boolean).join(' ').trim();
-
-  const btn = document.getElementById('req-submit-btn');
-  btn.classList.add('loading'); btn.textContent = 'Getting quotes...';
-
-  try {
-    const [saved] = await sb.insert('booking_requests', {
-      client_id: currentClient.id,
-      trip_type: currentTripType,
-      from_airport: from.split('—')[0].trim().toUpperCase(),
-      from_city: from.includes('—') ? from.split('—')[1].trim() : from,
-      to_airport: to.split('—')[0].trim().toUpperCase(),
-      to_city: to.includes('—') ? to.split('—')[1].trim() : to,
-      flight_date: date,
-      flight_time: time || 'Flexible',
-      passengers: parseInt(pax),
-      notes: fullNotes || null,
-      status: 'open'
-    });
-
-    btn.classList.remove('loading');
-    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polygon points="8,1 10.5,6 16,6.8 12,10.7 12.9,16 8,13.5 3.1,16 4,10.7 0,6.8 5.5,6"/></svg> Get Instant Quotes';
-
-    // Reset form
-    document.getElementById('req-from').value = '';
-    document.getElementById('req-to').value = '';
-    document.getElementById('req-notes').value = '';
-    activePrefs.forEach(p => {
-      document.getElementById('pref-' + p)?.classList.remove('selected');
-      if (prefDetails[p]) document.getElementById(prefDetails[p]).style.display = 'none';
-    });
-    activePrefs.clear();
-    if (minorsOn) toggleMinors();
-
-    showToast('success', '✓', 'Request sent to verified operators', `${saved.from_airport} → ${saved.to_airport} · ${pax} pax`);
-    loadClientRequests(currentClient.id);
-
-  } catch (err) {
-    btn.classList.remove('loading');
-    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polygon points="8,1 10.5,6 16,6.8 12,10.7 12.9,16 8,13.5 3.1,16 4,10.7 0,6.8 5.5,6"/></svg> Get Instant Quotes';
-    showToast('error', '✕', 'Could not submit request', err.message);
-  }
+  _sb.from('booking_requests').insert([{
+    client_id: user.id,
+    trip_type: tripType,
+    from_airport: fromAirport,
+    to_airport: toAirport,
+    departure_date: date || null,
+    departure_time: time || null,
+    passengers: parseInt(pax) || 1,
+    notes: notes || null,
+    status: 'open'
+  }]).select().then(function(res) {
+    if (res.error) {
+      showToast('error', '✕', 'Error', res.error.message);
+      return;
+    }
+    showToast('success', '✈️', 'Request Submitted!', 'Operators will send you quotes shortly.');
+    // Clear form
+    var fields = ['req-from','req-to','req-date','req-pax','req-time','req-notes'];
+    fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.value = ''; });
+    // Refresh requests list
+    setTimeout(function() { loadClientRequests(); }, 500);
+  });
 }
 
 // ══ QUOTE MODAL ══
@@ -2233,6 +2184,31 @@ async function processPayment() {
   }
 }
 
+
+// ── CLIENT REALTIME QUOTES ──
+var _clientRealtimeChannel = null;
+function startRealtimeQuotes() {
+  if (_clientRealtimeChannel) {
+    _sb.removeChannel(_clientRealtimeChannel);
+  }
+  var user = currentClient || window._clientUser;
+  if (!user) return;
+
+  console.log('Client Realtime: subscribing to quotes...');
+
+  _clientRealtimeChannel = _sb.channel('client-quotes-' + Date.now())
+    .on('postgres_changes', 
+      { event: 'INSERT', schema: 'public', table: 'quotes' },
+      function(payload) {
+        console.log('New quote received:', payload);
+        showToast('success', '💰', 'New Quote Received!', 'A charter operator has sent you a quote. Check below to compare.');
+        setTimeout(function() { loadClientRequests(); }, 500);
+      }
+    )
+    .subscribe(function(status) {
+      console.log('Client quote subscription:', status);
+    });
+}
 </script>
 </body>
 </html>
