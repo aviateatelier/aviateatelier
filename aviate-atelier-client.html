@@ -1116,8 +1116,9 @@ async function loadClientRequests() {
   var _clientUser = currentClient || window._clientUser;
   if (!_clientUser) return;
   window._quoteMap = {};
+
   _sb.from('booking_requests')
-    .select('*, quotes(*)')
+    .select('*')
     .eq('client_id', _clientUser.id)
     .order('created_at', { ascending: false })
     .then(function(res) {
@@ -1128,49 +1129,69 @@ async function loadClientRequests() {
         list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3)">No bookings yet. Submit a charter request above.</div>';
         return;
       }
-      var html = '';
-      requests.forEach(function(r) {
-        var quotes = r.quotes || [];
-        var statusLabel = r.status === 'open' ? '🔵 Awaiting Quotes' :
-                         r.status === 'quoted' ? '🟡 ' + quotes.length + ' Quote' + (quotes.length!==1?'s':'') + ' Received' :
-                         r.status === 'confirmed' ? '🟢 Confirmed' : r.status;
-        html += '<div style="background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px;margin-bottom:16px;">' +
-          '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">' +
-            '<div>' +
-              '<div style="font-size:22px;font-weight:800;">' + (r.from_airport||'?') + ' → ' + (r.to_airport||'?') + '</div>' +
-              '<div style="font-size:12px;color:var(--text3);margin-top:4px;">' + (r.departure_date||'Flexible') + ' · ' + (r.passengers||1) + ' pax</div>' +
-            '</div>' +
-            '<span style="font-size:12px;font-weight:600;">' + statusLabel + '</span>' +
-          '</div>';
 
-        if (quotes.length > 0) {
-          html += '<div style="border-top:1px solid var(--border);padding-top:16px;">' +
-            '<div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;margin-bottom:12px;">Quotes Received</div>';
-          quotes.forEach(function(q) {
+      var requestIds = requests.map(function(r){ return r.id; });
+      _sb.from('quotes')
+        .select('*')
+        .in('request_id', requestIds)
+        .then(function(qres) {
+          var allQuotes = qres.data || [];
+          var quotesByRequest = {};
+          allQuotes.forEach(function(q) {
+            if (!quotesByRequest[q.request_id]) quotesByRequest[q.request_id] = [];
+            quotesByRequest[q.request_id].push(q);
             window._quoteMap[q.id] = q;
-            html += '<div style="background:var(--bg);border:1px solid var(--border2);border-radius:14px;padding:16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">' +
-              '<div>' +
-                '<div style="font-size:15px;font-weight:700;">' + (q.aircraft_type||'Aircraft') + '</div>' +
-                '<div style="font-size:12px;color:var(--text3);margin-top:2px;">' + (q.flight_time||'') + (q.notes ? ' · ' + q.notes : '') + '</div>' +
-              '</div>' +
-              '<div style="text-align:right;">' +
-                '<div style="font-size:20px;font-weight:800;color:var(--gold2);">$' + Number(q.price||0).toLocaleString() + '</div>' +
-                (r.status !== 'confirmed' ? '<button class="accept-quote-btn" data-qid="' + q.id + '" style="margin-top:8px;background:linear-gradient(135deg,#C8912A,#E5A83C);color:#07090F;border:none;border-radius:10px;padding:8px 16px;font-size:12px;font-weight:800;cursor:pointer;">Accept &amp; Pay</button>' : '<span style="color:#4FD080;font-size:12px;font-weight:700;">✓ Accepted</span>') +
-              '</div>' +
-            '</div>';
           });
-          html += '</div>';
-        }
-        html += '</div>';
-      });
-      list.innerHTML = html;
-      list.querySelectorAll('.accept-quote-btn').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-          var qid = this.getAttribute('data-qid');
-          var quote = window._quoteMap[qid];
-          if (quote) initiatePayment(quote);
+
+          var html = '';
+          requests.forEach(function(r) {
+            var quotes = quotesByRequest[r.id] || [];
+            var statusLabel = quotes.length > 0 ?
+              '<span style="color:#E5A83C;font-size:12px;font-weight:700;">' + quotes.length + ' Quote' + (quotes.length!==1?'s':'') + ' Received</span>' :
+              '<span style="color:#58A6FF;font-size:12px;font-weight:600;">Awaiting Quotes</span>';
+
+            html += '<div style="background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px;margin-bottom:16px;">' +
+              '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">' +
+                '<div>' +
+                  '<div style="font-size:22px;font-weight:800;">' + (r.from_airport||'?') + ' &#8594; ' + (r.to_airport||'?') + '</div>' +
+                  '<div style="font-size:12px;color:var(--text3);margin-top:4px;">' + (r.departure_date||'Flexible') + ' &middot; ' + (r.passengers||1) + ' pax</div>' +
+                '</div>' +
+                statusLabel +
+              '</div>';
+
+            if (quotes.length > 0) {
+              html += '<div style="border-top:1px solid var(--border);padding-top:16px;">' +
+                '<div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;margin-bottom:12px;">' + quotes.length + ' Quote' + (quotes.length!==1?'s':'') + ' &mdash; Compare &amp; Select</div>';
+              quotes.forEach(function(q) {
+                var deposit = Math.round((q.price||0) * 0.25);
+                html += '<div style="background:var(--bg);border:1px solid var(--border2);border-radius:14px;padding:16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">' +
+                  '<div>' +
+                    '<div style="font-size:15px;font-weight:700;">' + (q.aircraft_type||q.aircraft_label||'Aircraft') + '</div>' +
+                    '<div style="font-size:12px;color:var(--text3);margin-top:2px;">' + (q.flight_time||'') + (q.notes ? ' &middot; ' + q.notes : '') + '</div>' +
+                    '<div style="font-size:11px;color:#C8912A;margin-top:4px;">25% deposit: $' + deposit.toLocaleString() + '</div>' +
+                  '</div>' +
+                  '<div style="text-align:right;">' +
+                    '<div style="font-size:20px;font-weight:800;color:var(--gold2);">$' + Number(q.price||0).toLocaleString() + '</div>' +
+                    '<div style="font-size:10px;color:var(--text3);margin-bottom:6px;">total price</div>' +
+                    '<button class="accept-quote-btn" data-qid="' + q.id + '" style="background:linear-gradient(135deg,#C8912A,#E5A83C);color:#07090F;border:none;border-radius:10px;padding:8px 16px;font-size:12px;font-weight:800;cursor:pointer;">Accept &amp; Pay</button>' +
+                  '</div>' +
+                '</div>';
+              });
+              html += '</div>';
+            }
+            html += '</div>';
+          });
+
+          list.innerHTML = html;
+          list.querySelectorAll('.accept-quote-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+              var qid = this.getAttribute('data-qid');
+              var quote = window._quoteMap[qid];
+              if (quote) initiatePayment(quote);
+              else console.error('Quote not found:', qid);
+            });
+          });
         });
-      });
     });
 }
 
