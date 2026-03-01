@@ -2081,50 +2081,41 @@ async function initiatePayment(quote) {
     modal = document.createElement('div');
     modal.id = 'payment-modal';
     modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
-    modal.innerHTML = `
-      <div style="background:#12151F;border:1px solid #262B3A;border-radius:24px;padding:32px;width:100%;max-width:460px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-          <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;">Confirm & Pay Deposit</div>
-          <button onclick="closePaymentModal()" style="background:none;border:none;color:#8892A4;font-size:24px;cursor:pointer;">✕</button>
-        </div>
-        <div style="font-size:12px;color:#8892A4;margin-bottom:24px;">${quote.aircraft_type || 'Charter Flight'}</div>
-
-        <!-- Deposit Breakdown -->
-        <div style="background:#07090F;border:1px solid #262B3A;border-radius:14px;padding:16px;margin-bottom:20px;">
-          <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
-            <span style="font-size:13px;color:#8892A4;">Total Charter Price</span>
-            <span style="font-size:13px;font-weight:700;">$\${total.toLocaleString()}</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
-            <span style="font-size:13px;color:#C8912A;">Due Now (25% Deposit)</span>
-            <span style="font-size:13px;font-weight:700;color:#C8912A;">$\${deposit.toLocaleString()}</span>
-          </div>
-          <div style="border-top:1px solid #262B3A;margin:10px 0;"></div>
-          <div style="display:flex;justify-content:space-between;">
-            <span style="font-size:12px;color:#8892A4;">Remaining (due 48hrs before flight)</span>
-            <span style="font-size:12px;color:#8892A4;">$\${remaining.toLocaleString()}</span>
-          </div>
-        </div>
-
-        <!-- Card Element -->
-        <div style="margin-bottom:8px;font-size:11px;color:#8892A4;text-transform:uppercase;letter-spacing:.05em;">Card Details</div>
-        <div id="card-element" style="background:#07090F;border:1px solid #262B3A;border-radius:10px;padding:14px;margin-bottom:8px;"></div>
-        <div id="card-errors" style="color:#FF6B6B;font-size:12px;min-height:18px;margin-bottom:16px;"></div>
-
-        <!-- Coming Soon Notice -->
-        <div style="background:rgba(88,166,255,0.06);border:1px solid rgba(88,166,255,0.15);border-radius:10px;padding:12px;margin-bottom:16px;font-size:11px;color:#8892A4;text-align:center;">
-          🚀 <strong style="color:#58A6FF;">More payment options coming soon</strong><br>
-          Bank transfer · Wire · PayPal · Apple Pay · Google Pay
-        </div>
-
-        <button id="pay-btn" onclick="processPayment()" style="width:100%;background:linear-gradient(135deg,#C8912A,#E5A83C);color:#07090F;border:none;border-radius:14px;padding:16px;font-size:15px;font-weight:800;cursor:pointer;">
-          Pay $\${deposit.toLocaleString()} Deposit Now
-        </button>
-        <div style="text-align:center;margin-top:12px;font-size:11px;color:#3E4558;">
-          🔒 Secured by Stripe · Full refund if operator cancels · 100% refund 7+ days before flight
-        </div>
-      </div>
-    `;
+    modal.innerHTML = '<div style="background:#12151F;border:1px solid #262B3A;border-radius:24px;padding:32px;width:100%;max-width:460px;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
+          '<div style="font-family:Playfair Display,serif;font-size:22px;font-weight:700;">Confirm &amp; Pay Deposit</div>' +
+          '<button onclick="closePaymentModal()" style="background:none;border:none;color:#8892A4;font-size:24px;cursor:pointer;">&times;</button>' +
+        '</div>' +
+        '<div style="font-size:12px;color:#8892A4;margin-bottom:24px;">' + (quote.aircraft_type||'Charter Flight') + '</div>' +
+        '<div style="background:#07090F;border:1px solid #262B3A;border-radius:14px;padding:16px;margin-bottom:20px;">' +
+          '<div style="display:flex;justify-content:space-between;margin-bottom:8px;">' +
+            '<span style="font-size:13px;color:#8892A4;">Total Charter Price</span>' +
+            '<span style="font-size:13px;font-weight:700;">$' + total.toLocaleString() + '</span>' +
+          '</div>' +
+          '<div style="display:flex;justify-content:space-between;margin-bottom:8px;">' +
+            '<span style="font-size:13px;color:#C8912A;">Due Now (25% Deposit)</span>' +
+            '<span style="font-size:13px;font-weight:700;color:#C8912A;">$' + deposit.toLocaleString() + '</span>' +
+          '</div>' +
+          '<div style="border-top:1px solid #262B3A;margin:10px 0;"></div>' +
+          '<div style="display:flex;justify-content:space-between;">' +
+            '<span style="font-size:12px;color:#8892A4;">Remaining (due 48hrs before flight)</span>' +
+            '<span style="font-size:12px;color:#8892A4;">$' + remaining.toLocaleString() + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<div style="margin-bottom:8px;font-size:11px;color:#8892A4;text-transform:uppercase;letter-spacing:.05em;">Card Details</div>' +
+        '<div id="card-element" style="background:#07090F;border:1px solid #262B3A;border-radius:10px;padding:14px;margin-bottom:8px;"></div>' +
+        '<div id="card-errors" style="color:#FF6B6B;font-size:12px;min-height:18px;margin-bottom:16px;"></div>' +
+        '<div style="background:rgba(88,166,255,0.06);border:1px solid rgba(88,166,255,0.15);border-radius:10px;padding:12px;margin-bottom:16px;font-size:11px;color:#8892A4;text-align:center;">' +
+          '&#128640; <strong style="color:#58A6FF;">More payment options coming soon</strong><br>' +
+          'Bank transfer &middot; Wire &middot; PayPal &middot; Apple Pay &middot; Google Pay' +
+        '</div>' +
+        '<button id="pay-btn" onclick="processPayment()" style="width:100%;background:linear-gradient(135deg,#C8912A,#E5A83C);color:#07090F;border:none;border-radius:14px;padding:16px;font-size:15px;font-weight:800;cursor:pointer;">' +
+          'Pay $' + deposit.toLocaleString() + ' Deposit Now' +
+        '</button>' +
+        '<div style="text-align:center;margin-top:12px;font-size:11px;color:#3E4558;">' +
+          '&#128274; Secured by Stripe &middot; Full refund if operator cancels &middot; 100% refund 7+ days before flight' +
+        '</div>' +
+      '</div>';
     document.body.appendChild(modal);
   }
 
